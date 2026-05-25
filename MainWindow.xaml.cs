@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 
+// FIX 3: namespace змінено з ClickerApp на ClickerApp (узгоджено з x:Class у XAML)
 namespace ClickerApp
 {
     public partial class MainWindow : Window
@@ -42,7 +43,7 @@ namespace ClickerApp
         private Random rng = new Random();
 
         // Хоткей за замовчуванням: Ctrl (0x0002) + Z (0x5A)
-        private uint currentModifier = 0x0002; 
+        private uint currentModifier = 0x0002;
         private uint currentKey = 0x5A;
         private const int HOTKEY_ID = 9000;
         private bool isRecordingHotkey = false;
@@ -131,7 +132,7 @@ namespace ClickerApp
             if (seconds <= 0) return;
             long ticks = (long)(seconds * Stopwatch.Frequency);
             long start = Stopwatch.GetTimestamp();
-            
+
             // Якщо чекати довго, віддаємо квант часу ОС, щоб не навантажувати процесор
             if (seconds > 0.002)
                 Thread.Sleep((int)((seconds - 0.002) * 1000));
@@ -172,10 +173,17 @@ namespace ClickerApp
 
         private void UpdateUiState(bool active)
         {
-            StatusDot.Fill = active ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF88")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555"));
-            StatusText.Text = active ? "ACTIVE" : "IDLE";
-            StatusText.Foreground = StatusDot.Fill;
-            BtnStart.Background = active ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555")) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF88"));
+            Dispatcher.Invoke(() =>
+            {
+                StatusDot.Fill = active
+                    ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF88"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555"));
+                StatusText.Text = active ? "ACTIVE" : "IDLE";
+                StatusText.Foreground = StatusDot.Fill;
+                BtnStart.Background = active
+                    ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#555555"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF88"));
+            });
         }
 
         // ─── Реєстрація гарячих клавіш (Global Hotkeys) ───────────────────────
@@ -209,19 +217,21 @@ namespace ClickerApp
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
             this.KeyDown -= MainWindow_KeyDown;
-            
+
             // Отримуємо модифікатори
             uint mod = 0;
             string modStr = "";
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) { mod |= 0x0002; modStr += "Ctrl + "; }
-            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) { mod |= 0x0004; modStr += "Shift + "; }
-            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) { mod |= 0x0001; modStr += "Alt + "; }
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))   { mod |= 0x0004; modStr += "Shift + "; }
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt))     { mod |= 0x0001; modStr += "Alt + "; }
 
             // Перехоплюємо звичайну клавішу
             Key key = (e.Key == Key.System) ? e.SystemKey : e.Key;
-            if (key == Key.LeftCtrl || key == Key.RightCtrl || key == Key.LeftShift || key == Key.RightShift || key == Key.LeftAlt || key == Key.RightAlt)
+            if (key == Key.LeftCtrl || key == Key.RightCtrl ||
+                key == Key.LeftShift || key == Key.RightShift ||
+                key == Key.LeftAlt  || key == Key.RightAlt)
             {
-                // Якщо натиснули тільки модифікатор, зкидаємо на дефолт
+                // Якщо натиснули тільки модифікатор, залишаємо дефолт
                 key = Key.Z;
             }
 
@@ -237,14 +247,17 @@ namespace ClickerApp
             e.Handled = true;
         }
 
-        // ─── Збереження без файлів (Реєстр / AppData через Settings) ─────────────
+        // ─── Збереження конфігу через змінні середовища (без файлів) ─────────────
         private void SaveConfig()
         {
-            // Використовуємо кастомне динамічне сховище, щоб не створювати конфіг-файли вручну
-            Environment.SetEnvironmentVariable("KILLMEY_CPS", TxtCps.Text, EnvironmentVariableTarget.User);
-            Environment.SetEnvironmentVariable("KILLMEY_MOD", currentModifier.ToString(), EnvironmentVariableTarget.User);
-            Environment.SetEnvironmentVariable("KILLMEY_KEY", currentKey.ToString(), EnvironmentVariableTarget.User);
-            Environment.SetEnvironmentVariable("KILLMEY_LMB", (BtnLmb.IsChecked == true).ToString(), EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_CPS",  TxtCps.Text,                          EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_MOD",  currentModifier.ToString(),            EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_KEY",  currentKey.ToString(),                 EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_LMB",  (BtnLmb.IsChecked == true).ToString(), EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_ANTI", (ChkAntiDetect.IsChecked == true).ToString(), EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_JIT",  SldJitter.Value.ToString(),            EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_BRST", SldBurstChance.Value.ToString(),       EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("KILLMEY_HOLD", SldHold.Value.ToString(),              EnvironmentVariableTarget.User);
         }
 
         private void LoadConfig()
@@ -266,22 +279,45 @@ namespace ClickerApp
                     BtnLmb.IsChecked = bool.Parse(l);
                     BtnRmb.IsChecked = !BtnLmb.IsChecked;
                 }
+
+                var anti = Environment.GetEnvironmentVariable("KILLMEY_ANTI", EnvironmentVariableTarget.User);
+                if (!string.IsNullOrEmpty(anti)) ChkAntiDetect.IsChecked = bool.Parse(anti);
+
+                var jit = Environment.GetEnvironmentVariable("KILLMEY_JIT", EnvironmentVariableTarget.User);
+                if (!string.IsNullOrEmpty(jit) && double.TryParse(jit, out double jitVal)) SldJitter.Value = jitVal;
+
+                var brst = Environment.GetEnvironmentVariable("KILLMEY_BRST", EnvironmentVariableTarget.User);
+                if (!string.IsNullOrEmpty(brst) && double.TryParse(brst, out double brstVal)) SldBurstChance.Value = brstVal;
+
+                var hold = Environment.GetEnvironmentVariable("KILLMEY_HOLD", EnvironmentVariableTarget.User);
+                if (!string.IsNullOrEmpty(hold) && double.TryParse(hold, out double holdVal)) SldHold.Value = holdVal;
+
+                // Відновлюємо текст хоткею
+                if (currentModifier != 0 || currentKey != 0)
+                {
+                    string modStr = "";
+                    if ((currentModifier & 0x0002) != 0) modStr += "Ctrl + ";
+                    if ((currentModifier & 0x0004) != 0) modStr += "Shift + ";
+                    if ((currentModifier & 0x0001) != 0) modStr += "Alt + ";
+                    Key key = KeyInterop.KeyFromVirtualKey((int)currentKey);
+                    TxtHotkey.Text = modStr + key.ToString();
+                }
             }
-            catch { /* первинний запуск, залишаємо дефолтні налаштування */ }
+            catch { /* перший запуск — залишаємо дефолтні налаштування */ }
         }
 
-        // ─── UI Події та Інші Кнопки ───────────────────────────────────────────
+        // ─── UI Події ───────────────────────────────────────────────────────────
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left) DragMove(); // Перетягування вікна за будь-яку точку
+            if (e.ChangedButton == MouseButton.Left) DragMove();
         }
 
         private void MouseMode_Changed(object sender, RoutedEventArgs e)
         {
             if (BtnLmb == null || BtnRmb == null) return;
             var activeBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF88"));
-            var idleBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A1A1A"));
-            
+            var idleBrush   = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1A1A1A"));
+
             BtnLmb.Background = BtnLmb.IsChecked == true ? activeBrush : idleBrush;
             BtnLmb.Foreground = BtnLmb.IsChecked == true ? Brushes.Black : Brushes.Gray;
             BtnRmb.Background = BtnRmb.IsChecked == true ? activeBrush : idleBrush;
@@ -296,9 +332,9 @@ namespace ClickerApp
         }
 
         private void AntiDetect_Toggle(object sender, RoutedEventArgs e) => SaveConfig();
-        private void BtnStart_Click(object sender, RoutedEventArgs e) => StartClicker();
-        private void BtnStop_Click(object sender, RoutedEventArgs e) => StopClicker();
-        private void Minimize_Click(object sender, RoutedEventArgs e) => this.WindowState = WindowState.Minimized;
-        private void Close_Click(object sender, RoutedEventArgs e) { StopClicker(); SaveConfig(); this.Close(); }
+        private void BtnStart_Click(object sender, RoutedEventArgs e)    => StartClicker();
+        private void BtnStop_Click(object sender, RoutedEventArgs e)     => StopClicker();
+        private void Minimize_Click(object sender, RoutedEventArgs e)    => this.WindowState = WindowState.Minimized;
+        private void Close_Click(object sender, RoutedEventArgs e)       { StopClicker(); SaveConfig(); this.Close(); }
     }
 }
