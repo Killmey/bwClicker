@@ -51,9 +51,21 @@ namespace ClickerApp
 
         public MainWindow()
         {
-            InitializeComponent();
-            LoadConfig();
-            ComponentDispatcher.ThreadFilterMessage += ComponentDispatcher_ThreadFilterMessage;
+            try
+            {
+                InitializeComponent();
+                LoadConfig();
+                ComponentDispatcher.ThreadFilterMessage += ComponentDispatcher_ThreadFilterMessage;
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.WriteAllText(
+                    System.IO.Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                        "clicker_error.txt"),
+                    ex.ToString());
+                throw;
+            }
         }
 
         protected override void OnSourceInitialized(EventArgs e)
