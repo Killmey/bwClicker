@@ -1,0 +1,116 @@
+﻿<Window x:Class="WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2000/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2000/xaml"
+        Title="CLICKER" Height="620" Width="400"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterScreen" MouseDown="Window_MouseDown">
+
+    <Window.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Margin" Value="20,5"/>
+        </Style>
+        <Style x:Key="HeaderLabel" TargetType="Label">
+            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="20,8,20,2"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="#0D0D0D" CornerRadius="16" BorderBrush="#2A2A2A" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="80"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="35"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row0="0" Margin="20,15,20,0">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="CLICKER" Foreground="#00FF88" FontFamily="Consolas" FontSize="26" FontWeight="Bold" LetterSpacing="2"/>
+                    <TextBlock Text="by Killmey (C# Evolved)" Foreground="#555555" FontFamily="Consolas" FontSize="11"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top" Orientation="Horizontal">
+                    <Ellipse x:Name="StatusDot" Width="10" Height="10" Fill="#555555" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="StatusText" Text="IDLE" Foreground="#555555" FontFamily="Consolas" FontSize="11" FontWeight="Bold" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                    <Button Content="─" Click="Minimize_Click" Background="Transparent" Foreground="#555555" BorderThickness="0" FontFamily="Consolas" FontSize="14" Cursor="Hand" Margin="0,0,10,0"/>
+                    <Button Content="✕" Click="Close_Click" Background="Transparent" Foreground="#555555" BorderThickness="0" FontFamily="Consolas" FontSize="14" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                <StackPanel>
+                    <Separator Background="#2A2A2A" Margin="20,5"/>
+
+                    <Label Content="КНОПКА МЫШИ" Style="{StaticResource HeaderLabel}"/>
+                    <Grid Margin="20,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <ToggleButton x:Name="BtnLmb" Content="ЛКМ" IsChecked="True" Checked="MouseMode_Changed" Height="40" Margin="0,0,5,0" Background="#00FF88" Foreground="#0D0D0D" FontFamily="Consolas" FontWeight="Bold" FontSize="14" Cursor="Hand"/>
+                        <ToggleButton x:Name="BtnRmb" Grid.Column="1" Content="ПКМ" Checked="MouseMode_Changed" Height="40" Margin="5,0,0,0" Background="#1A1A1A" Foreground="#555555" FontFamily="Consolas" FontWeight="Bold" FontSize="14" Cursor="Hand"/>
+                    </Grid>
+
+                    <Label Content="КЛИКОВ В СЕКУНДУ (CPS)" Style="{StaticResource HeaderLabel}"/>
+                    <Border Style="{StaticResource CardStyle}">
+                        <TextBox x:Name="TxtCps" Text="100" Background="Transparent" BorderThickness="0" Foreground="#00FF88" FontFamily="Consolas" FontSize="28" FontWeight="Bold" HorizontalContentAlignment="Center" LostFocus="TxtCps_LostFocus"/>
+                    </Border>
+
+                    <Label Content="АНТИВЫЯВЛЕНИЕ" Style="{StaticResource HeaderLabel}"/>
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <CheckBox x:Name="ChkAntiDetect" Content="ВКЛЮЧИТЬ АНТИ-ДЕТЕКТ" Foreground="#E0E0E0" FontFamily="Consolas" FontSize="12" Margin="0,5" Checked="AntiDetect_Toggle" Unchecked="AntiDetect_Toggle"/>
+                            
+                            <TextBlock Text="Разброс интервала (%)" Foreground="#555555" FontFamily="Consolas" FontSize="11" Margin="0,5,0,0"/>
+                            <Grid>
+                                <Slider x:Name="SldJitter" Minimum="0" Maximum="50" Value="10" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,0,45,0"/>
+                                <TextBlock Text="{Binding ElementName=SldJitter, Path=Value, StringFormat={}{0}%}" Foreground="#00FF88" HorizontalAlignment="Right" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <TextBlock Text="Шанс микро-паузы (%)" Foreground="#555555" FontFamily="Consolas" FontSize="11" Margin="0,5,0,0"/>
+                            <Grid>
+                                <Slider x:Name="SldBurstChance" Minimum="0" Maximum="30" Value="2" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,0,45,0"/>
+                                <TextBlock Text="{Binding ElementName=SldBurstChance, Path=Value, StringFormat={}{0}%}" Foreground="#00FF88" HorizontalAlignment="Right" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
+                            </Grid>
+                            
+                            <TextBlock Text="Разброс удержания (мс)" Foreground="#555555" FontFamily="Consolas" FontSize="11" Margin="0,5,0,0"/>
+                            <Grid>
+                                <Slider x:Name="SldHold" Minimum="0" Maximum="40" Value="8" TickFrequency="1" IsSnapToTickEnabled="True" Margin="0,0,45,0"/>
+                                <TextBlock Text="{Binding ElementName=SldHold, Path=Value, StringFormat={}{0} мс}" Foreground="#00FF88" HorizontalAlignment="Right" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Label Content="ГОРЯЧАЯ КЛАВИША" Style="{StaticResource HeaderLabel}"/>
+                    <Grid Margin="20,2,20,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="#1A1A1A" CornerRadius="8" Padding="10,0" Height="40">
+                            <TextBlock x:Name="TxtHotkey" Text="Ctrl + Z" Foreground="#00FF88" FontFamily="Consolas" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </Border>
+                        <Button x:Name="BtnRecord" Grid.Column="1" Content="ЗАПИСЬ" Click="BtnRecord_Click" Background="#2A2A2A" Foreground="#E0E0E0" BorderThickness="0" FontFamily="Consolas" FontWeight="Bold" Margin="5,0,0,0" Height="40" Cursor="Hand"/>
+                    </Grid>
+
+                    <Grid Margin="20,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="BtnStart" Content="▶ СТАРТ" Click="BtnStart_Click" Background="#00FF88" Foreground="#0D0D0D" FontFamily="Consolas" FontSize="14" FontWeight="Bold" Height="45" Margin="0,0,5,0" Cursor="Hand"/>
+                        <Button x:Name="BtnStop" Grid.Column="1" Content="■ СТОП" Click="BtnStop_Click" Background="#2A2A2A" Foreground="#FF3355" BorderThickness="0" FontFamily="Consolas" FontSize="14" FontWeight="Bold" Height="45" Margin="5,0,0,0" Cursor="Hand"/>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <TextBlock Grid.Row="2" Text="SendInput  ·  WPF Windows Native" Foreground="#555555" FontFamily="Consolas" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+    </Border>
+</Window>
