@@ -343,7 +343,7 @@ namespace ClickerApp
                 if (localAnti && rng.Next(1, 101) <= localBurstChance)
                     PreciseSleep(localBurstMs / 1000.0);
 
-                nextTick += intervalTicks;
+                nextTick = Stopwatch.GetTimestamp() + intervalTicks;
             }
         }
 
@@ -682,12 +682,26 @@ namespace ClickerApp
 
         void SetRunMode(bool hold, bool save = true)
         {
+            if (!hold && BtnLmb != null && BtnRmb != null && BtnLmb.IsChecked == true && BtnRmb.IsChecked == true)
+                SetMouseButtons(false, true, save: false);
+
             BtnStayMode.IsChecked = !hold;
             BtnHoldMode.IsChecked = hold;
-            BtnStayMode.Background = !hold ? AccentBrush : SurfaceBrush;
-            BtnStayMode.Foreground = !hold ? BgBrush : MutedBrush;
-            BtnHoldMode.Background = hold ? AccentBrush : SurfaceBrush;
-            BtnHoldMode.Foreground = hold ? BgBrush : MutedBrush;
+            BtnStayMode.Foreground = !hold ? AccentBrush : MutedBrush;
+            BtnHoldMode.Foreground = hold ? AccentBrush : MutedBrush;
+
+            RunModeShell.Background = LineBrush;
+            RunModeThumb.Background = SurfaceBrush;
+            if (RunModeThumb.RenderTransform is TranslateTransform translate)
+            {
+                var target = hold ? 54.0 : 0.0;
+                translate.BeginAnimation(
+                    TranslateTransform.XProperty,
+                    new DoubleAnimation(target, TimeSpan.FromMilliseconds(160))
+                    {
+                        EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                    });
+            }
 
             lock (stateLock) holdMode = hold;
             holdActive = false;
@@ -1111,6 +1125,12 @@ namespace ClickerApp
 
         void MouseButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!holdMode)
+            {
+                SetMouseButtons(sender == BtnLmb, sender == BtnRmb);
+                return;
+            }
+
             var left = BtnLmb.IsChecked == true;
             var right = BtnRmb.IsChecked == true;
             if (!left && !right)

@@ -97,6 +97,27 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="PillModeButton" TargetType="ToggleButton">
+            <Setter Property="Width" Value="54"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Border Background="{DynamicResource BgBrush}" CornerRadius="18" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
@@ -150,12 +171,43 @@
                                    FontSize="11" FontWeight="Bold"
                                    VerticalAlignment="Center" Margin="7,0,0,0"/>
                     </StackPanel>
+                    <Border x:Name="RunModeShell"
+                            Width="112" Height="28"
+                            Background="{DynamicResource LineBrush}"
+                            CornerRadius="14"
+                            ClipToBounds="True"
+                            Margin="0,11,0,0"
+                            HorizontalAlignment="Right">
+                        <Grid>
+                            <Border x:Name="RunModeThumb"
+                                    Width="54" Height="24"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="2,0,0,0"
+                                    Background="{DynamicResource SurfaceBrush}"
+                                    CornerRadius="12">
+                                <Border.RenderTransform>
+                                    <TranslateTransform/>
+                                </Border.RenderTransform>
+                            </Border>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <ToggleButton x:Name="BtnStayMode" Content="STAY"
+                                              Style="{StaticResource PillModeButton}"
+                                              Click="RunMode_Click"/>
+                                <ToggleButton x:Name="BtnHoldMode" Grid.Column="1" Content="HOLD"
+                                              Style="{StaticResource PillModeButton}"
+                                              Click="RunMode_Click"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Grid>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                          Background="Transparent" Padding="0,0,4,0">
-            <StackPanel>
+            <StackPanel Grid.Row="1">
                 <Rectangle Height="1" Fill="{DynamicResource LineBrush}" Margin="0,0,0,14"/>
 
                 <TextBlock Text="КНОПКА МИШІ" Style="{StaticResource SectionLabel}"/>
@@ -170,20 +222,6 @@
                     <ToggleButton x:Name="BtnRmb" Grid.Column="1" Content="ПКМ"
                                   Style="{StaticResource SegmentButton}"
                                   Click="MouseButton_Click" Margin="5,0,0,0"/>
-                </Grid>
-
-                <TextBlock Text="РЕЖИМ" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <ToggleButton x:Name="BtnStayMode" Content="STAY"
-                                  Style="{StaticResource SegmentButton}"
-                                  Click="RunMode_Click" Margin="0,0,5,0"/>
-                    <ToggleButton x:Name="BtnHoldMode" Grid.Column="1" Content="HOLD"
-                                  Style="{StaticResource SegmentButton}"
-                                  Click="RunMode_Click" Margin="5,0,0,0"/>
                 </Grid>
 
                 <TextBlock Text="КЛІКІВ НА СЕКУНДУ" Style="{StaticResource SectionLabel}"/>
@@ -281,7 +319,6 @@
                             Height="50" Margin="6,0,0,0"/>
                 </Grid>
             </StackPanel>
-            </ScrollViewer>
 
             <TextBlock Grid.Row="2" Text="SendInput  ·  WPF  ·  Windows"
                        Foreground="{DynamicResource MutedBrush}"
