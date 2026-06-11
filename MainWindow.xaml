@@ -172,13 +172,25 @@
                                    FontSize="11" FontWeight="Bold"
                                    VerticalAlignment="Center" Margin="7,0,0,0"/>
                     </StackPanel>
-                    <Border x:Name="RunModeShell"
-                            Width="112" Height="28"
-                            Background="{DynamicResource LineBrush}"
-                            CornerRadius="14"
-                            ClipToBounds="True"
-                            Margin="0,11,0,0"
-                            HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,11,0,0">
+                        <Border x:Name="ModulesShell"
+                                Width="28" Height="28"
+                                Background="{DynamicResource LineBrush}"
+                                CornerRadius="14"
+                                ClipToBounds="True"
+                                Margin="0,0,8,0">
+                            <Button x:Name="BtnModules" Content="⚡"
+                                    Style="{StaticResource PillModeButton}"
+                                    Click="BtnModules_Click"
+                                    Width="24" Height="24"
+                                    FontSize="12"
+                                    Cursor="Hand"/>
+                        </Border>
+                        <Border x:Name="RunModeShell"
+                                Width="112" Height="28"
+                                Background="{DynamicResource LineBrush}"
+                                CornerRadius="14"
+                                ClipToBounds="True">
                         <Grid>
                             <Border x:Name="RunModeThumb"
                                     Width="54" Height="24"
@@ -237,38 +249,6 @@
                              CaretBrush="Transparent"
                              LostFocus="TxtCps_LostFocus"
                              KeyDown="TxtCps_KeyDown"/>
-                </Border>
-
-                <TextBlock Text="ANTI-DETECT" Style="{StaticResource SectionLabel}"/>
-                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10"
-                        BorderBrush="{DynamicResource LineBrush}" BorderThickness="1"
-                        Padding="14" Margin="0,0,0,16">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition Width="94"/>
-                            <ColumnDefinition Width="46"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Рандомізація кліків" Style="{StaticResource PanelTitle}"/>
-                            <TextBlock x:Name="TxtAntiSummary"
-                                       Text="Вимкнено"
-                                       Foreground="{DynamicResource MutedBrush}"
-                                       FontSize="11" Margin="0,3,0,0"/>
-                        </StackPanel>
-                        <ToggleButton x:Name="BtnAntiToggle" Grid.Column="1"
-                                      Content="ВИКЛ"
-                                      Style="{StaticResource SegmentButton}"
-                                      Click="BtnAntiToggle_Click"
-                                      Margin="8,0,0,0"/>
-                        <Button Grid.Column="2" Content="⚙"
-                                Style="{StaticResource FlatButton}"
-                                Click="BtnAntiSettings_Click"
-                                Background="{DynamicResource LineBrush}"
-                                Foreground="{DynamicResource TextBrush}"
-                                FontSize="16" Margin="8,0,0,0"
-                                ToolTip="Налаштування anti-detect"/>
-                    </Grid>
                 </Border>
 
                 <TextBlock Text="ГАРЯЧА КЛАВІША" Style="{StaticResource SectionLabel}"/>
