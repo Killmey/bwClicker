@@ -64,7 +64,7 @@ namespace ClickerApp
         const uint InputMouse = 0;
         const uint InputKeyboard = 1;
         const uint LeftDown = 0x0002, LeftUp = 0x0004, RightDown = 0x0008, RightUp = 0x0010;
-        const uint KeyDown = 0x0000, KeyUp = 0x0002;
+        const uint KeyDownFlag = 0x0000, KeyUpFlag = 0x0002;
         const uint ModAlt = 0x0001, ModCtrl = 0x0002, ModShift = 0x0004;
         const int HotkeyId = 9000;
         const int RejoinHotkeyId = 9001;
@@ -281,13 +281,11 @@ namespace ClickerApp
         void ApplyConfigToUi()
         {
             TxtCps.Text = cps.ToString(Invariant);
-            BtnAntiToggle.IsChecked = antiOn;
             BtnStayMode.IsChecked = !holdMode;
             BtnHoldMode.IsChecked = holdMode;
             SetMouseButtons(clickLeft, clickRight, save: false);
             SetRunMode(holdMode, save: false);
             TxtHotkey.Text = HotkeyText();
-            UpdateAntiUi();
             UpdateMiniUi();
             SetUi(running);
         }
@@ -308,7 +306,6 @@ namespace ClickerApp
                 cps = parsed;
                 clickLeft = BtnLmb.IsChecked == true;
                 clickRight = BtnRmb.IsChecked == true;
-                antiOn = BtnAntiToggle.IsChecked == true;
                 holdMode = BtnHoldMode.IsChecked == true;
             }
         }
@@ -325,7 +322,6 @@ namespace ClickerApp
             Resources["ControlFontSize"] = (double)fontSize;
             SetMouseButtons(BtnLmb.IsChecked == true, BtnRmb.IsChecked == true, save: false);
             SetRunMode(BtnHoldMode.IsChecked == true, save: false);
-            UpdateAntiUi();
             UpdateMiniUi();
             SetUi(running);
         }
@@ -454,13 +450,13 @@ namespace ClickerApp
                 bool shift = (vk & 0x0100) != 0;
                 ushort vkCode = (ushort)(vk & 0xFF);
 
-                if (shift) SendKey(0x10, KeyDown);
+                if (shift) SendKey(0x10, KeyDownFlag);
 
-                SendKey(vkCode, KeyDown);
+                SendKey(vkCode, KeyDownFlag);
                 Thread.Sleep(10);
-                SendKey(vkCode, KeyUp);
+                SendKey(vkCode, KeyUpFlag);
 
-                if (shift) SendKey(0x10, KeyUp);
+                if (shift) SendKey(0x10, KeyUpFlag);
 
                 Thread.Sleep(5);
             }
@@ -476,13 +472,13 @@ namespace ClickerApp
                 {
                     SendText(rejoinCommand1);
                     Thread.Sleep(100);
-                    SendKey(0x0D, KeyDown);
-                    SendKey(0x0D, KeyUp);
+                    SendKey(0x0D, KeyDownFlag);
+                    SendKey(0x0D, KeyUpFlag);
                     Thread.Sleep(rejoinDelay);
                     SendText(rejoinCommand2);
                     Thread.Sleep(100);
-                    SendKey(0x0D, KeyDown);
-                    SendKey(0x0D, KeyUp);
+                    SendKey(0x0D, KeyDownFlag);
+                    SendKey(0x0D, KeyUpFlag);
                 }
                 catch { }
             });
@@ -869,16 +865,6 @@ namespace ClickerApp
             physicalRightDown = false;
             SetUi(running);
             if (save && initialized) SaveConfig();
-        }
-
-        void UpdateAntiUi()
-        {
-            var on = BtnAntiToggle.IsChecked == true;
-            BtnAntiToggle.Content = on ? "ВКЛ" : "ВИКЛ";
-            BtnAntiToggle.Background = on ? AccentBrush : LineBrush;
-            BtnAntiToggle.Foreground = on ? BgBrush : MutedBrush;
-            TxtAntiSummary.Text = on ? "Активна рандомізація" : "Вимкнено";
-            lock (stateLock) antiOn = on;
         }
 
         void UpdateMiniUi()
@@ -1470,7 +1456,7 @@ namespace ClickerApp
                 FontFamily = new FontFamily("Consolas"),
                 FontSize = fontSize,
                 FontWeight = FontWeights.Bold,
-                Padding = new Thickness(13, 0),
+                Padding = new Thickness(13, 0, 13, 0),
                 VerticalContentAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(8, 0, 0, 0)
             };
@@ -1513,7 +1499,7 @@ namespace ClickerApp
                 BorderBrush = LineBrush,
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
-                Padding = new Thickness(13, 0),
+                Padding = new Thickness(13, 0, 13, 0),
                 Margin = new Thickness(8, 0, 0, 0)
             };
 
