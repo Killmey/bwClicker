@@ -218,6 +218,7 @@
                         </Grid>
                     </Border>
                 </StackPanel>
+            </StackPanel>
             </Grid>
 
             <StackPanel Grid.Row="1">
