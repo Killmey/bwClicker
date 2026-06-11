@@ -1058,7 +1058,6 @@ namespace ClickerApp
             antiToggle.Click += (_, _) =>
             {
                 antiOn = !antiOn;
-                UpdateAntiUi();
                 SaveConfig();
                 OpenModulesWindow();
                 win.Close();
@@ -1178,15 +1177,15 @@ namespace ClickerApp
             var root = PopupRoot(win);
 
             AddSliderRow(root, "Розкид інтервалу", "Випадкове відхилення від базового CPS", 0, 50, jitter, "%",
-                value => { lock (stateLock) jitter = value; this.jitter = value; UpdateAntiUi(); SaveConfig(); });
+                value => { lock (stateLock) jitter = value; this.jitter = value; SaveConfig(); });
             AddDivider(root);
             AddSliderRow(root, "Шанс мікропаузи", "Ймовірність паузи між кліками", 0, 30, burstChance, "%",
-                value => { lock (stateLock) burstChance = value; this.burstChance = value; UpdateAntiUi(); SaveConfig(); });
+                value => { lock (stateLock) burstChance = value; this.burstChance = value; SaveConfig(); });
             AddSliderRow(root, "Тривалість мікропаузи", "Окремий параметр, який загубився у C# версії", 50, 500, burstMs, "мс",
-                value => { lock (stateLock) burstMs = value; this.burstMs = value; UpdateAntiUi(); SaveConfig(); });
+                value => { lock (stateLock) burstMs = value; this.burstMs = value; SaveConfig(); });
             AddDivider(root);
             AddSliderRow(root, "Розкид утримання", "Випадковий hold-time перед відпусканням кнопки", 0, 40, holdMs, "мс",
-                value => { lock (stateLock) holdMs = value; this.holdMs = value; UpdateAntiUi(); SaveConfig(); });
+                value => { lock (stateLock) holdMs = value; this.holdMs = value; SaveConfig(); });
 
             win.ShowDialog();
         }
