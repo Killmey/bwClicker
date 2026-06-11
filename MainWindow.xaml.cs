@@ -1048,7 +1048,7 @@ namespace ClickerApp
             antiRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             antiRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            antiRow.Children.Add(new StackPanel { VerticalAlignment = VerticalAlignment.Center }.WithChildren(
+            antiRow.Children.Add(WithChildren(new StackPanel { VerticalAlignment = VerticalAlignment.Center },
                 new TextBlock { Tag = "Text", Text = "Рандомізація кліків", FontSize = fontSize, FontWeight = FontWeights.Bold },
                 new TextBlock { Tag = "Muted", Text = antiOn ? "Активна рандомізація" : "Вимкнено", FontSize = Math.Max(9, fontSize - 2), Margin = new Thickness(0, 3, 0, 0) }
             ));
@@ -1125,7 +1125,7 @@ namespace ClickerApp
             rejoinRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             rejoinRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-            rejoinRow.Children.Add(new StackPanel { VerticalAlignment = VerticalAlignment.Center }.WithChildren(
+            rejoinRow.Children.Add(WithChildren(new StackPanel { VerticalAlignment = VerticalAlignment.Center },
                 new TextBlock { Tag = "Text", Text = "Автоматичне повернення", FontSize = fontSize, FontWeight = FontWeights.Bold },
                 new TextBlock { Tag = "Muted", Text = rejoinOn ? "Активовано" : "Вимкнено", FontSize = Math.Max(9, fontSize - 2), Margin = new Thickness(0, 3, 0, 0) }
             ));
@@ -1436,7 +1436,7 @@ namespace ClickerApp
         static int Clamp(int value, int min, int max) =>
             Math.Min(max, Math.Max(min, value));
 
-        static StackPanel WithChildren(this StackPanel panel, params UIElement[] children)
+        static StackPanel WithChildren(StackPanel panel, params UIElement[] children)
         {
             foreach (var child in children)
                 panel.Children.Add(child);
