@@ -214,10 +214,8 @@
                                 </Border>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <ToggleButton x:Name="BtnStayMode" Content="STAY" Style="{StaticResource PillModeButton}" Click="RunMode_Click"/>
                                     <ToggleButton x:Name="BtnHoldMode" Grid.Column="1" Content="HOLD" Style="{StaticResource PillModeButton}" Click="RunMode_Click"/>
@@ -234,10 +232,8 @@
                 <TextBlock Text="КНОПКА МИШІ" Style="{StaticResource SectionLabel}"/>
                 <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <ToggleButton x:Name="BtnLmb" Content="ЛКМ" Style="{StaticResource SegmentButton}" Click="MouseButton_Click" Margin="0,0,5,0"/>
                     <ToggleButton x:Name="BtnRmb" Grid.Column="1" Content="ПКМ" Style="{StaticResource SegmentButton}" Click="MouseButton_Click" Margin="5,0,0,0"/>
@@ -251,10 +247,8 @@
                 <TextBlock Text="ГАРЯЧА КЛАВІША" Style="{StaticResource SectionLabel}"/>
                 <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition Width="108"/>
-                        </Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="108"/>
                     </Grid.ColumnDefinitions>
                     <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="9" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Height="42" Padding="13,0">
                         <TextBlock x:Name="TxtHotkey" Text="Ctrl + Z" Foreground="{DynamicResource AccentBrush}" FontSize="{DynamicResource ControlFontSize}" FontWeight="Bold" VerticalAlignment="Center"/>
@@ -267,10 +261,8 @@
 
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Button x:Name="BtnStart" Content="▶  СТАРТ" Style="{StaticResource FlatButton}" Click="BtnStart_Click" Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource BgBrush}" Height="50" Margin="0,0,6,0"/>
                     <Button x:Name="BtnStop" Grid.Column="1" Content="■  СТОП" Style="{StaticResource FlatButton}" Click="BtnStop_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource DangerBrush}" Height="50" Margin="6,0,0,0"/>
