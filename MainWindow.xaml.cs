@@ -129,9 +129,8 @@ namespace ClickerApp
         string rejoinHotDisplay = "L";
         string rejoinLeaveCmd = "/leave";
         string rejoinJoinCmd = "/rejoin";
-        int rejoinDelayMs = 3000; // Зберігаємо в мс
+        int rejoinDelayMs = 3000;
 
-        // Елементи динамічного інтерфейсу модулів
         ToggleButton? modAntiToggle;
         TextBlock? modAntiSummary;
         ToggleButton? modRejoinToggle;
@@ -212,9 +211,7 @@ namespace ClickerApp
         {
             try
             {
-                var path = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                    "clicker_error.txt");
+                var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "clicker_error.txt");
                 File.WriteAllText(path, ex.ToString());
             }
             catch { }
@@ -251,8 +248,7 @@ namespace ClickerApp
                     clickRight = !clickLeft;
                 }
 
-                if (!clickLeft && !clickRight)
-                    clickRight = true;
+                if (!clickLeft && !clickRight) clickRight = true;
 
                 holdMode = string.Equals(cfg.RunMode, "Hold", StringComparison.OrdinalIgnoreCase);
                 antiOn = cfg.AntiDetect.On;
@@ -274,9 +270,7 @@ namespace ClickerApp
                 rejoinLeaveCmd = string.IsNullOrWhiteSpace(rejoin.LeaveCommand) ? "/leave" : rejoin.LeaveCommand;
                 rejoinJoinCmd = string.IsNullOrWhiteSpace(rejoin.RejoinCommand) ? "/rejoin" : rejoin.RejoinCommand;
                 
-                rejoinDelayMs = rejoin.DelayMs > 0
-                    ? Clamp(rejoin.DelayMs, 0, 60000)
-                    : Clamp(rejoin.DelaySeconds, 0, 60) * 1000;
+                rejoinDelayMs = rejoin.DelayMs > 0 ? Clamp(rejoin.DelayMs, 0, 60000) : Clamp(rejoin.DelaySeconds, 0, 60) * 1000;
             }
             catch { }
         }
@@ -377,14 +371,8 @@ namespace ClickerApp
 
         static SolidColorBrush BrushOf(string hex)
         {
-            try
-            {
-                return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-            }
-            catch
-            {
-                return new SolidColorBrush(Color.FromRgb(0, 255, 136));
-            }
+            try { return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); }
+            catch { return new SolidColorBrush(Color.FromRgb(0, 255, 136)); }
         }
 
         Brush AccentBrush => (Brush)Resources["AccentBrush"];
@@ -398,7 +386,6 @@ namespace ClickerApp
         void Loop()
         {
             long nextTick = 0;
-
             while (running)
             {
                 int localCps, localJitter, localBurstChance, localBurstMs, localHoldMs;
@@ -416,8 +403,7 @@ namespace ClickerApp
                     localHoldMs = holdMs;
                 }
 
-                if (!localLeft && !localRight)
-                    localRight = true;
+                if (!localLeft && !localRight) localRight = true;
 
                 if (localHoldMode)
                 {
@@ -442,23 +428,18 @@ namespace ClickerApp
 
                 var intervalTicks = Math.Max(1, (long)Math.Round(interval * Stopwatch.Frequency));
                 var now = Stopwatch.GetTimestamp();
-                if (nextTick == 0)
-                    nextTick = now + intervalTicks;
-                else if (nextTick < now - intervalTicks)
+                if (nextTick == 0 || nextTick < now - intervalTicks)
                     nextTick = now + intervalTicks;
 
                 PreciseSleepUntil(nextTick);
 
                 if (localLeft) Click(LeftDown);
                 if (localRight) Click(RightDown);
-                if (localAnti && localHoldMs > 0)
-                    PreciseSleep(rng.NextDouble() * localHoldMs / 1000.0);
+                if (localAnti && localHoldMs > 0) PreciseSleep(rng.NextDouble() * localHoldMs / 1000.0);
                 if (localRight) Click(RightUp);
                 if (localLeft) Click(LeftUp);
 
-                if (localAnti && rng.Next(1, 101) <= localBurstChance)
-                    PreciseSleep(localBurstMs / 1000.0);
-
+                if (localAnti && rng.Next(1, 101) <= localBurstChance) PreciseSleep(localBurstMs / 1000.0);
                 nextTick += intervalTicks;
             }
         }
@@ -494,16 +475,13 @@ namespace ClickerApp
         static void SendChatCommand(string command)
         {
             if (string.IsNullOrWhiteSpace(command)) return;
-
             SendVirtualKey(VkChatOpen);
             Thread.Sleep(60);
-
             foreach (var c in command)
             {
                 SendUnicodeChar(c);
                 Thread.Sleep(8);
             }
-
             Thread.Sleep(40);
             SendVirtualKey(VkReturn);
         }
@@ -520,13 +498,9 @@ namespace ClickerApp
             {
                 var remaining = (targetTick - Stopwatch.GetTimestamp()) / (double)Stopwatch.Frequency;
                 if (remaining <= 0) return;
-
-                if (remaining > 0.006)
-                    Thread.Sleep(Math.Max(1, (int)(remaining * 1000) - 2));
-                else if (remaining > 0.0015)
-                    Thread.Sleep(0);
-                else
-                    Thread.SpinWait(80);
+                if (remaining > 0.006) Thread.Sleep(Math.Max(1, (int)(remaining * 1000) - 2));
+                else if (remaining > 0.0015) Thread.Sleep(0);
+                else Thread.SpinWait(80);
             }
         }
 
@@ -535,10 +509,8 @@ namespace ClickerApp
             if (running) return;
             TxtCps_LostFocus(this, new RoutedEventArgs());
             RefreshRuntimeState();
-            holdActiveLeft = false;
-            holdActiveRight = false;
-            physicalLeftDown = false;
-            physicalRightDown = false;
+            holdActiveLeft = false; holdActiveRight = false;
+            physicalLeftDown = false; physicalRightDown = false;
             EnableHighResolutionTimer();
             running = true;
             SetUi(true);
@@ -550,28 +522,20 @@ namespace ClickerApp
         {
             if (!running) return;
             running = false;
-            holdActiveLeft = false;
-            holdActiveRight = false;
-            physicalLeftDown = false;
-            physicalRightDown = false;
+            holdActiveLeft = false; holdActiveRight = false;
+            physicalLeftDown = false; physicalRightDown = false;
             DisableHighResolutionTimer();
             SetUi(false);
         }
 
         void Toggle()
         {
-            if (running) Stop();
-            else Start();
+            if (running) Stop(); else Start();
         }
 
         void SetUi(bool on)
         {
-            if (!Dispatcher.CheckAccess())
-            {
-                Dispatcher.Invoke(() => SetUi(on));
-                return;
-            }
-
+            if (!Dispatcher.CheckAccess()) { Dispatcher.Invoke(() => SetUi(on)); return; }
             StatusDot.Fill = on ? AccentBrush : MutedBrush;
             StatusText.Text = on ? (holdMode && !(holdActiveLeft || holdActiveRight) ? "ARMED" : "ACTIVE") : "IDLE";
             StatusText.Foreground = on ? AccentBrush : MutedBrush;
@@ -584,8 +548,7 @@ namespace ClickerApp
         void EnableHighResolutionTimer()
         {
             if (highResolutionTimer) return;
-            if (timeBeginPeriod(1) == 0)
-                highResolutionTimer = true;
+            if (timeBeginPeriod(1) == 0) highResolutionTimer = true;
         }
 
         void DisableHighResolutionTimer()
@@ -627,7 +590,6 @@ namespace ClickerApp
                         HandlePhysicalMouse(msg);
                 }
             }
-
             return CallNextHookEx(mouseHook, nCode, wParam, lParam);
         }
 
@@ -635,9 +597,7 @@ namespace ClickerApp
         {
             bool localHoldMode;
             lock (stateLock) localHoldMode = holdMode;
-
-            if (!running || !localHoldMode)
-                return;
+            if (!running || !localHoldMode) return;
 
             if (msg == WmLButtonDown) physicalLeftDown = true;
             if (msg == WmLButtonUp) physicalLeftDown = false;
@@ -650,8 +610,7 @@ namespace ClickerApp
         void SetHoldActive(bool left, bool right)
         {
             if (holdActiveLeft == left && holdActiveRight == right) return;
-            holdActiveLeft = left;
-            holdActiveRight = right;
+            holdActiveLeft = left; holdActiveRight = right;
             Dispatcher.BeginInvoke(new Action(() => SetUi(running)));
         }
 
@@ -661,8 +620,7 @@ namespace ClickerApp
             for (var i = 0; i < count; i++)
             {
                 var child = VisualTreeHelper.GetChild(root, i);
-                if (child is ButtonBase button)
-                    AttachHoverAnimation(button);
+                if (child is ButtonBase button) AttachHoverAnimation(button);
                 AttachHoverAnimations(child);
             }
         }
@@ -694,8 +652,7 @@ namespace ClickerApp
 
         void UnregisterCurrentHotkey()
         {
-            if (windowHandle != IntPtr.Zero)
-                UnregisterHotKey(windowHandle, HotkeyId);
+            if (windowHandle != IntPtr.Zero) UnregisterHotKey(windowHandle, HotkeyId);
         }
 
         void RegisterRejoinHotkey()
@@ -708,14 +665,12 @@ namespace ClickerApp
 
         void UnregisterRejoinHotkey()
         {
-            if (windowHandle != IntPtr.Zero)
-                UnregisterHotKey(windowHandle, RejoinHotkeyId);
+            if (windowHandle != IntPtr.Zero) UnregisterHotKey(windowHandle, RejoinHotkeyId);
         }
 
         void OnHotkeyMessage(ref MSG msg, ref bool handled)
         {
             if (msg.message != 0x0312) return;
-
             var id = msg.wParam.ToInt32();
             if (id == HotkeyId)
             {
@@ -729,20 +684,10 @@ namespace ClickerApp
             }
         }
 
-        // Фікс: Працює ТІЛЬКИ коли клікер активний (running == true)
         void TriggerAutoRejoin()
         {
-            bool on;
-            string leave, rejoin;
-            int delayMs;
-            lock (stateLock)
-            {
-                on = modulesAutoRejoinOn;
-                leave = rejoinLeaveCmd;
-                rejoin = rejoinJoinCmd;
-                delayMs = rejoinDelayMs;
-            }
-
+            bool on; string leave, rejoin; int delayMs;
+            lock (stateLock) { on = modulesAutoRejoinOn; leave = rejoinLeaveCmd; rejoin = rejoinJoinCmd; delayMs = rejoinDelayMs; }
             if (!on || !running) return;
 
             new Thread(() =>
@@ -750,48 +695,30 @@ namespace ClickerApp
                 SendChatCommand(leave);
                 Thread.Sleep(Math.Max(0, delayMs));
                 SendChatCommand(rejoin);
-            })
-            { IsBackground = true }.Start();
+            }) { IsBackground = true }.Start();
         }
 
         void BeginRecording()
         {
-            recording = true;
-            UnregisterCurrentHotkey();
-            BtnRecord.Content = "СКАСУВАТИ";
-            BtnRecord.Background = DangerBrush;
-            BtnRecord.Foreground = BgBrush;
-            TxtHotkey.Text = "Натисни комбінацію...";
-            TxtHotkey.Foreground = DangerBrush;
-            PreviewKeyDown += CaptureHotkey;
-            Focus();
-            Keyboard.Focus(BtnRecord);
+            recording = true; UnregisterCurrentHotkey();
+            BtnRecord.Content = "СКАСУВАТИ"; BtnRecord.Background = DangerBrush; BtnRecord.Foreground = BgBrush;
+            TxtHotkey.Text = "Натисни комбінацію..."; TxtHotkey.Foreground = DangerBrush;
+            PreviewKeyDown += CaptureHotkey; Focus(); Keyboard.Focus(BtnRecord);
         }
 
         void CancelRecording()
         {
-            recording = false;
-            PreviewKeyDown -= CaptureHotkey;
-            BtnRecord.Content = "ЗАПИС";
-            BtnRecord.Background = LineBrush;
-            BtnRecord.Foreground = TextBrush;
-            TxtHotkey.Text = HotkeyText();
-            TxtHotkey.Foreground = AccentBrush;
-            UpdateMiniUi();
-            RegisterCurrentHotkey();
+            recording = false; PreviewKeyDown -= CaptureHotkey;
+            BtnRecord.Content = "ЗАПИС"; BtnRecord.Background = LineBrush; BtnRecord.Foreground = TextBrush;
+            TxtHotkey.Text = HotkeyText(); TxtHotkey.Foreground = AccentBrush;
+            UpdateMiniUi(); RegisterCurrentHotkey();
         }
 
         void CaptureHotkey(object sender, KeyEventArgs e)
         {
             e.Handled = true;
             var key = e.Key == Key.System ? e.SystemKey : e.Key;
-
-            if (key == Key.Escape)
-            {
-                CancelRecording();
-                return;
-            }
-
+            if (key == Key.Escape) { CancelRecording(); return; }
             if (IsModifierOnly(key)) return;
 
             var vk = (uint)KeyInterop.VirtualKeyFromKey(key);
@@ -802,19 +729,11 @@ namespace ClickerApp
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) mods |= ModShift;
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) mods |= ModAlt;
 
-            hotMod = mods;
-            hotVk = vk;
-            hotDisplay = KeyToDisplay(key, vk);
-            recording = false;
-            PreviewKeyDown -= CaptureHotkey;
-            BtnRecord.Content = "ЗАПИС";
-            BtnRecord.Background = LineBrush;
-            BtnRecord.Foreground = TextBrush;
-            TxtHotkey.Text = HotkeyText();
-            TxtHotkey.Foreground = AccentBrush;
-            UpdateMiniUi();
-            RegisterCurrentHotkey();
-            SaveConfig();
+            hotMod = mods; hotVk = vk; hotDisplay = KeyToDisplay(key, vk);
+            recording = false; PreviewKeyDown -= CaptureHotkey;
+            BtnRecord.Content = "ЗАПИС"; BtnRecord.Background = LineBrush; BtnRecord.Foreground = TextBrush;
+            TxtHotkey.Text = HotkeyText(); TxtHotkey.Foreground = AccentBrush;
+            UpdateMiniUi(); RegisterCurrentHotkey(); SaveConfig();
         }
 
         static bool IsModifierOnly(Key key) =>
@@ -838,35 +757,20 @@ namespace ClickerApp
             if (vk >= 0x41 && vk <= 0x5A) return ((char)vk).ToString();
             return key switch
             {
-                Key.Space => "Space",
-                Key.Return => "Enter",
-                Key.Back => "Bksp",
-                Key.Delete => "Del",
-                Key.Insert => "Ins",
-                Key.PageUp => "PgUp",
-                Key.PageDown => "PgDn",
-                Key.OemPlus => "=",
-                Key.OemMinus => "-",
-                Key.OemComma => ",",
-                Key.OemPeriod => ".",
-                _ => key.ToString()
+                Key.Space => "Space", Key.Return => "Enter", Key.Back => "Bksp",
+                Key.Delete => "Del", Key.Insert => "Ins", Key.PageUp => "PgUp",
+                Key.PageDown => "PgDn", Key.OemPlus => "=", Key.OemMinus => "-",
+                Key.OemComma => ",", Key.OemPeriod => ".", _ => key.ToString()
             };
         }
 
         void SetMouseButtons(bool left, bool right, bool save = true)
         {
             if (!left && !right) right = true;
-            BtnLmb.IsChecked = left;
-            BtnRmb.IsChecked = right;
-            BtnLmb.Background = left ? AccentBrush : SurfaceBrush;
-            BtnLmb.Foreground = left ? BgBrush : MutedBrush;
-            BtnRmb.Background = right ? AccentBrush : SurfaceBrush;
-            BtnRmb.Foreground = right ? BgBrush : MutedBrush;
-            lock (stateLock)
-            {
-                clickLeft = left;
-                clickRight = right;
-            }
+            BtnLmb.IsChecked = left; BtnRmb.IsChecked = right;
+            BtnLmb.Background = left ? AccentBrush : SurfaceBrush; BtnLmb.Foreground = left ? BgBrush : MutedBrush;
+            BtnRmb.Background = right ? AccentBrush : SurfaceBrush; BtnRmb.Foreground = right ? BgBrush : MutedBrush;
+            lock (stateLock) { clickLeft = left; clickRight = right; }
             UpdateMiniUi();
             if (save && initialized) SaveConfig();
         }
@@ -876,29 +780,19 @@ namespace ClickerApp
             if (!hold && BtnLmb != null && BtnRmb != null && BtnLmb.IsChecked == true && BtnRmb.IsChecked == true)
                 SetMouseButtons(false, true, save: false);
 
-            BtnStayMode.IsChecked = !hold;
-            BtnHoldMode.IsChecked = hold;
-            BtnStayMode.Foreground = !hold ? AccentBrush : MutedBrush;
-            BtnHoldMode.Foreground = hold ? AccentBrush : MutedBrush;
-            RunModeShell.Background = LineBrush;
-            RunModeThumb.Background = SurfaceBrush;
+            BtnStayMode.IsChecked = !hold; BtnHoldMode.IsChecked = hold;
+            BtnStayMode.Foreground = !hold ? AccentBrush : MutedBrush; BtnHoldMode.Foreground = hold ? AccentBrush : MutedBrush;
+            RunModeShell.Background = LineBrush; RunModeThumb.Background = SurfaceBrush;
 
             if (RunModeThumb.RenderTransform is TranslateTransform translate)
             {
                 var target = hold ? 54.0 : 0.0;
-                translate.BeginAnimation(
-                    TranslateTransform.XProperty,
-                    new DoubleAnimation(target, TimeSpan.FromMilliseconds(160))
-                    {
-                        EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                    });
+                translate.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(target, TimeSpan.FromMilliseconds(160)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
             }
 
             lock (stateLock) holdMode = hold;
-            holdActiveLeft = false;
-            holdActiveRight = false;
-            physicalLeftDown = false;
-            physicalRightDown = false;
+            holdActiveLeft = false; holdActiveRight = false;
+            physicalLeftDown = false; physicalRightDown = false;
             SetUi(running);
             if (save && initialized) SaveConfig();
         }
@@ -935,20 +829,16 @@ namespace ClickerApp
             if (modAntiToggle != null)
             {
                 var on = antiOn;
-                modAntiToggle.IsChecked = on;
-                modAntiToggle.Content = on ? "ВКЛ" : "ВИКЛ";
-                modAntiToggle.Background = on ? AccentBrush : LineBrush;
-                modAntiToggle.Foreground = on ? BgBrush : MutedBrush;
+                modAntiToggle.IsChecked = on; modAntiToggle.Content = on ? "ВКЛ" : "ВИКЛ";
+                modAntiToggle.Background = on ? AccentBrush : LineBrush; modAntiToggle.Foreground = on ? BgBrush : MutedBrush;
             }
             if (modAntiSummary != null) modAntiSummary.Text = AntiSummaryText();
 
             if (modRejoinToggle != null)
             {
                 var on = modulesAutoRejoinOn;
-                modRejoinToggle.IsChecked = on;
-                modRejoinToggle.Content = on ? "ВКЛ" : "ВИКЛ";
-                modRejoinToggle.Background = on ? AccentBrush : LineBrush;
-                modRejoinToggle.Foreground = on ? BgBrush : MutedBrush;
+                modRejoinToggle.IsChecked = on; modRejoinToggle.Content = on ? "ВКЛ" : "ВИКЛ";
+                modRejoinToggle.Background = on ? AccentBrush : LineBrush; modRejoinToggle.Foreground = on ? BgBrush : MutedBrush;
             }
             if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
 
@@ -959,38 +849,22 @@ namespace ClickerApp
         {
             if (ActiveModulesWrap == null) return;
             ActiveModulesWrap.Children.Clear();
-
             if (antiOn) ActiveModulesWrap.Children.Add(MakeModuleBadge("ANTI-DETECT"));
             if (modulesAutoRejoinOn) ActiveModulesWrap.Children.Add(MakeModuleBadge("AUTO-REJOIN"));
-
             ActiveModulesWrap.Visibility = ActiveModulesWrap.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         Border MakeModuleBadge(string text)
         {
-            var border = new Border
-            {
-                Background = LineBrush,
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(6, 3, 6, 3),
-                Margin = new Thickness(0, 0, 5, 3)
-            };
-            border.Child = new TextBlock
-            {
-                Text = text,
-                Foreground = AccentBrush,
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = 9,
-                FontWeight = FontWeights.Bold
-            };
+            var border = new Border { Background = LineBrush, CornerRadius = new CornerRadius(5), Padding = new Thickness(6, 3, 6, 3), Margin = new Thickness(0, 0, 5, 3) };
+            border.Child = new TextBlock { Text = text, Foreground = AccentBrush, FontFamily = new FontFamily("Consolas"), FontSize = 9, FontWeight = FontWeights.Bold };
             return border;
         }
 
         void UpdateMiniUi()
         {
             if (MiniMode == null || MiniCps == null || MiniHotkey == null) return;
-            var left = BtnLmb?.IsChecked == true;
-            var right = BtnRmb?.IsChecked == true;
+            var left = BtnLmb?.IsChecked == true; var right = BtnRmb?.IsChecked == true;
             MiniMode.Text = left && right ? "ЛКМ+ПКМ" : left ? "ЛКМ" : "ПКМ";
             MiniCps.Text = $"{Math.Max(1, cps)} CPS";
             MiniHotkey.Text = HotkeyText();
@@ -999,38 +873,20 @@ namespace ClickerApp
 
         static int Clamp(int val, int min, int max) => val < min ? min : (val > max ? max : val);
 
-        // Фікс кнопки СТОП: Дозволяємо клікати по контролах без безумовного блокування
         void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (recording) return;
-
             var hit = VisualTreeHelper.HitTest(this, e.GetPosition(this))?.VisualHit;
             bool overControl = false;
             while (hit != null && hit != this)
             {
-                if (hit is Button || hit is ToggleButton || hit is TextBox || hit is Slider)
-                {
-                    overControl = true;
-                    break;
-                }
+                if (hit is Button || hit is ToggleButton || hit is TextBox || hit is Slider) { overControl = true; break; }
                 hit = VisualTreeHelper.GetParent(hit);
             }
-
-            if (!overControl)
-            {
-                if (TxtCps != null && TxtCps.IsFocused)
-                {
-                    Focus();
-                    e.Handled = true;
-                }
-            }
+            if (!overControl && TxtCps != null && TxtCps.IsFocused) { Focus(); e.Handled = true; }
         }
 
-        void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!recording) DragMove();
-        }
-
+        void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (!recording) DragMove(); }
         void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
         void Close_Click(object sender, RoutedEventArgs e) => Close();
 
@@ -1038,8 +894,7 @@ namespace ClickerApp
         {
             if (!initialized) return;
             TxtCps.Text = ((int)SldCps.Value).ToString(Invariant);
-            RefreshRuntimeState();
-            UpdateMiniUi();
+            RefreshRuntimeState(); UpdateMiniUi();
         }
 
         void TxtCps_TextChanged(object sender, TextChangedEventArgs e)
@@ -1047,265 +902,147 @@ namespace ClickerApp
             if (!initialized || !TxtCps.IsFocused) return;
             if (int.TryParse(TxtCps.Text, out var parsed) && parsed >= 1 && parsed <= 200)
             {
-                SldCps.Value = parsed;
-                lock (stateLock) cps = parsed;
-                UpdateMiniUi();
+                SldCps.Value = parsed; lock (stateLock) cps = parsed; UpdateMiniUi();
             }
         }
 
         void TxtCps_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (!int.TryParse(TxtCps.Text, out var parsed) || parsed < 1)
-                parsed = 100;
-            parsed = Clamp(parsed, 1, 200);
-            TxtCps.Text = parsed.ToString(Invariant);
-            SldCps.Value = parsed;
-            lock (stateLock) cps = parsed;
-            UpdateMiniUi();
-            SaveConfig();
+            if (!int.TryParse(TxtCps.Text, out var parsed) || parsed < 1) parsed = 100;
+            parsed = Clamp(parsed, 1, 200); TxtCps.Text = parsed.ToString(Invariant); SldCps.Value = parsed;
+            lock (stateLock) cps = parsed; UpdateMiniUi(); SaveConfig();
         }
 
         void BtnLmb_Click(object sender, RoutedEventArgs e) => SetMouseButtons(true, false);
         void BtnRmb_Click(object sender, RoutedEventArgs e) => SetMouseButtons(false, true);
-
-        void RunMode_Click(object sender, RoutedEventArgs e)
-        {
-            var hold = sender == BtnHoldMode;
-            SetRunMode(hold);
-        }
-
-        void BtnRecord_Click(object sender, RoutedEventArgs e)
-        {
-            if (recording) CancelRecording();
-            else BeginRecording();
-        }
-
+        void RunMode_Click(object sender, RoutedEventArgs e) => SetRunMode(sender == BtnHoldMode);
+        void BtnRecord_Click(object sender, RoutedEventArgs e) { if (recording) CancelRecording(); else BeginRecording(); }
         void BtnStart_Click(object sender, RoutedEventArgs e) => Start();
         void BtnStop_Click(object sender, RoutedEventArgs e) => Stop();
 
-        // ═══ ПОП-АП МЕНЮ МОДУЛІВ ═══
         void BtnModules_Click(object sender, RoutedEventArgs e)
         {
-            var pop = new Popup
-            {
-                PlacementTarget = BtnModules,
-                Placement = PlacementMode.Bottom,
-                HorizontalOffset = -250,
-                VerticalOffset = 8,
-                AllowsTransparency = true,
-                StaysOpen = false
-            };
-
-            var border = new Border
-            {
-                Background = BgBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(12),
-                Width = 280,
-                Padding = new Thickness(16)
-            };
-
+            var pop = new Popup { PlacementTarget = BtnModules, Placement = PlacementMode.Bottom, HorizontalOffset = -250, VerticalOffset = 8, AllowsTransparency = true, StaysOpen = false };
+            var border = new Border { Background = BgBrush, BorderBrush = LineBrush, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Width = 280, Padding = new Thickness(16) };
             var mainStack = new StackPanel();
 
-            // --- Заголовок ---
-            mainStack.Children.Add(new TextBlock
-            {
-                Text = "МОДУЛІ МОДИФІКАЦІЇ",
-                Foreground = MutedBrush,
-                FontSize = 10,
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(0, 0, 0, 14)
-            });
+            mainStack.Children.Add(new TextBlock { Text = "МОДУЛІ МОДИФІКАЦІЇ", Foreground = MutedBrush, FontSize = 10, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 14) });
 
-            // 1. Модуль ANTI-DETECT
             var rowAnti = new Grid { Margin = new Thickness(0, 0, 0, 12) };
             rowAnti.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             rowAnti.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-
             var stackAntiText = new StackPanel();
             stackAntiText.Children.Add(new TextBlock { Text = "ANTI-DETECT", Style = (Style)Resources["PanelTitle"] });
             modAntiSummary = new TextBlock { Text = AntiSummaryText(), Foreground = MutedBrush, FontSize = 11, Margin = new Thickness(0, 2, 0, 0) };
-            stackAntiText.Children.Add(modAntiSummary);
-            rowAnti.Children.Add(stackAntiText);
-
+            stackAntiText.Children.Add(modAntiSummary); rowAnti.Children.Add(stackAntiText);
             modAntiToggle = new ToggleButton { Height = 26, Style = (Style)Resources["SegmentButton"] };
             modAntiToggle.Click += (_, _) => SetAntiOn(modAntiToggle.IsChecked == true);
-            Grid.SetColumn(modAntiToggle, 1);
-            rowAnti.Children.Add(modAntiToggle);
-            mainStack.Children.Add(rowAnti);
+            Grid.SetColumn(modAntiToggle, 1); rowAnti.Children.Add(modAntiToggle); mainStack.Children.Add(rowAnti);
 
             mainStack.Children.Add(new Border { Height = 1, Background = LineBrush, Margin = new Thickness(0, 4, 0, 14) });
 
-            // 2. Модуль АВТО-ПЕРЕЗАХІД (Змінено назву на «Авто-перезахід»)
             var rowRejoin = new Grid { Margin = new Thickness(0, 0, 0, 12) };
             rowRejoin.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             rowRejoin.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-
             var stackRejoinText = new StackPanel();
             stackRejoinText.Children.Add(new TextBlock { Text = "Авто-перезахід", Style = (Style)Resources["PanelTitle"] });
             modRejoinSummary = new TextBlock { Text = RejoinSummaryText(), Foreground = MutedBrush, FontSize = 11, Margin = new Thickness(0, 2, 0, 0) };
-            stackRejoinText.Children.Add(modRejoinSummary);
-            rowRejoin.Children.Add(stackRejoinText);
-
+            stackRejoinText.Children.Add(modRejoinSummary); rowRejoin.Children.Add(stackRejoinText);
             modRejoinToggle = new ToggleButton { Height = 26, Style = (Style)Resources["SegmentButton"] };
             modRejoinToggle.Click += (_, _) => SetAutoRejoinOn(modRejoinToggle.IsChecked == true);
-            Grid.SetColumn(modRejoinToggle, 1);
-            rowRejoin.Children.Add(modRejoinToggle);
-            mainStack.Children.Add(rowRejoin);
+            Grid.SetColumn(modRejoinToggle, 1); rowRejoin.Children.Add(modRejoinToggle); mainStack.Children.Add(rowRejoin);
 
-            // --- Блок розширених налаштувань автоперезаходу ---
             var rejoinSettings = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
-
             rejoinSettings.Children.Add(new TextBlock { Text = "ЗАТРИМКА (СЕКУНДИ)", Style = (Style)Resources["SectionLabel"], Margin = new Thickness(0, 4, 0, 5) });
             var delayGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
             delayGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             delayGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
 
-            // Повзунок керує секундами (цілі значення)
-            var sldDelay = new Slider { Minimum = 0, Maximum = 10, Value = Math.Round(rejoinDelayMs / 1000.0), IsSnapToTickEnabled = true, TickFrequency = 1, VerticalAlignment = Center, Margin = new Thickness(0, 0, 10, 0) };
+            var sldDelay = new Slider { Minimum = 0, Maximum = 10, Value = Math.Round(rejoinDelayMs / 1000.0), IsSnapToTickEnabled = true, TickFrequency = 1, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
             var txtDelay = new TextBox { Text = (rejoinDelayMs / 1000.0).ToString("0.000", Invariant), Background = SurfaceBrush, Foreground = TextBrush, BorderThickness = new Thickness(1), BorderBrush = LineBrush, Height = 28, FontSize = 12, FontWeight = FontWeights.Bold, FontFamily = new FontFamily("Consolas"), VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(4, 0, 4, 0), TextAlignment = TextAlignment.Center };
             FixTextBoxFocus(txtDelay);
 
             sldDelay.ValueChanged += (_, _) =>
             {
                 if (txtDelay.IsFocused) return;
-                int secs = (int)sldDelay.Value;
-                rejoinDelayMs = secs * 1000;
+                rejoinDelayMs = (int)sldDelay.Value * 1000;
                 txtDelay.Text = sldDelay.Value.ToString("0.0", Invariant);
                 if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
                 SaveConfig();
             };
 
-            // Фікс: Ручне введення підтримує дробові числа через крапку (.) або кому (,)
             txtDelay.LostFocus += (_, _) =>
             {
                 string raw = txtDelay.Text.Replace(',', '.').Trim();
                 if (double.TryParse(raw, NumberStyles.Any, Invariant, out var parsedSecs) && parsedSecs >= 0 && parsedSecs <= 60)
                 {
                     rejoinDelayMs = (int)Math.Round(parsedSecs * 1000.0);
-                    int clampedSlider = Clamp((int)Math.Floor(parsedSecs), (int)sldDelay.Minimum, (int)sldDelay.Maximum);
-                    sldDelay.Value = clampedSlider;
+                    sldDelay.Value = Clamp((int)Math.Floor(parsedSecs), (int)sldDelay.Minimum, (int)sldDelay.Maximum);
                 }
                 txtDelay.Text = (rejoinDelayMs / 1000.0).ToString(Invariant);
                 if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
                 SaveConfig();
             };
 
-            txtDelay.KeyDown += (_, ke) =>
-            {
-                if (ke.Key == Key.Enter)
-                {
-                    Forms.SendKeys.SendWait("{TAB}");
-                    ke.Handled = true;
-                }
-            };
+            txtDelay.KeyDown += (_, ke) => { if (ke.Key == Key.Enter) { Forms.SendKeys.SendWait("{TAB}"); ke.Handled = true; } };
+            delayGrid.Children.Add(sldDelay); Grid.SetColumn(txtDelay, 1); delayGrid.Children.Add(txtDelay); rejoinSettings.Children.Add(delayGrid);
 
-            delayGrid.Children.Add(sldDelay);
-            Grid.SetColumn(txtDelay, 1);
-            delayGrid.Children.Add(txtDelay);
-            rejoinSettings.Children.Add(delayGrid);
-
-            // Гаряча клавіша модуля
             rejoinSettings.Children.Add(new TextBlock { Text = "БІНД ДЛЯ ПЕРЕЗАХОДУ", Style = (Style)Resources["SectionLabel"], Margin = new Thickness(0, 4, 0, 5) });
-            var hkGrid = new Grid();
-            hkGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            hkGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-
+            var hkGrid = new Grid(); hkGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); hkGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
             var borderHk = new Border { Background = SurfaceBrush, CornerRadius = new CornerRadius(6), BorderThickness = new Thickness(1), BorderBrush = LineBrush, Height = 30, Margin = new Thickness(0, 0, 8, 0) };
             var txtHk = new TextBlock { Text = RejoinHotkeyText(), Foreground = AccentBrush, FontSize = 12, FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-            borderHk.Child = txtHk;
-            hkGrid.Children.Add(borderHk);
+            borderHk.Child = txtHk; hkGrid.Children.Add(borderHk);
 
             var btnHkRecord = new Button { Content = "ЗАПИС", Style = (Style)Resources["FlatButton"], Height = 30, Background = LineBrush, Foreground = TextBrush, FontSize = 11 };
-            
-            bool rejoinRecording = false;
-            KeyEventHandler? rejoinCaptureHandler = null;
+            bool rejoinRecording = false; KeyEventHandler? rejoinCaptureHandler = null;
 
             rejoinCaptureHandler = (senderHk, khArgs) =>
             {
-                khArgs.Handled = true;
-                var k = khArgs.Key == Key.System ? khArgs.SystemKey : khArgs.Key;
+                khArgs.Handled = true; var k = khArgs.Key == Key.System ? khArgs.SystemKey : khArgs.Key;
                 if (k == Key.Escape)
                 {
-                    rejoinRecording = false;
-                    pop.PreviewKeyDown -= rejoinCaptureHandler;
-                    btnHkRecord.Content = "ЗАПИС";
-                    btnHkRecord.Background = LineBrush;
-                    btnHkRecord.Foreground = TextBrush;
-                    txtHk.Text = RejoinHotkeyText();
-                    txtHk.Foreground = AccentBrush;
-                    RegisterRejoinHotkey();
-                    return;
+                    rejoinRecording = false; pop.PreviewKeyDown -= rejoinCaptureHandler;
+                    btnHkRecord.Content = "ЗАПИС"; btnHkRecord.Background = LineBrush; btnHkRecord.Foreground = TextBrush;
+                    txtHk.Text = RejoinHotkeyText(); txtHk.Foreground = AccentBrush; RegisterRejoinHotkey(); return;
                 }
                 if (IsModifierOnly(k)) return;
-                var vkey = (uint)KeyInterop.VirtualKeyFromKey(k);
-                if (vkey == 0) return;
+                var vkey = (uint)KeyInterop.VirtualKeyFromKey(k); if (vkey == 0) return;
 
                 uint mds = 0;
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) mds |= ModCtrl;
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) mds |= ModShift;
                 if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) mds |= ModAlt;
 
-                rejoinHotMod = mds;
-                rejoinHotVk = vkey;
-                rejoinHotDisplay = KeyToDisplay(k, vkey);
-
-                rejoinRecording = false;
-                pop.PreviewKeyDown -= rejoinCaptureHandler;
-                btnHkRecord.Content = "ЗАПИС";
-                btnHkRecord.Background = LineBrush;
-                btnHkRecord.Foreground = TextBrush;
-                txtHk.Text = RejoinHotkeyText();
-                txtHk.Foreground = AccentBrush;
+                rejoinHotMod = mds; rejoinHotVk = vkey; rejoinHotDisplay = KeyToDisplay(k, vkey);
+                rejoinRecording = false; pop.PreviewKeyDown -= rejoinCaptureHandler;
+                btnHkRecord.Content = "ЗАПИС"; btnHkRecord.Background = LineBrush; btnHkRecord.Foreground = TextBrush;
+                txtHk.Text = RejoinHotkeyText(); txtHk.Foreground = AccentBrush;
                 if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
-                RegisterRejoinHotkey();
-                SaveConfig();
+                RegisterRejoinHotkey(); SaveConfig();
             };
 
             btnHkRecord.Click += (_, _) =>
             {
                 if (rejoinRecording)
                 {
-                    rejoinRecording = false;
-                    pop.PreviewKeyDown -= rejoinCaptureHandler;
-                    btnHkRecord.Content = "ЗАПИС";
-                    btnHkRecord.Background = LineBrush;
-                    btnHkRecord.Foreground = TextBrush;
-                    txtHk.Text = RejoinHotkeyText();
-                    txtHk.Foreground = AccentBrush;
-                    RegisterRejoinHotkey();
+                    rejoinRecording = false; pop.PreviewKeyDown -= rejoinCaptureHandler;
+                    btnHkRecord.Content = "ЗАПИС"; btnHkRecord.Background = LineBrush; btnHkRecord.Foreground = TextBrush;
+                    txtHk.Text = RejoinHotkeyText(); txtHk.Foreground = AccentBrush; RegisterRejoinHotkey();
                 }
                 else
                 {
-                    rejoinRecording = true;
-                    UnregisterRejoinHotkey();
-                    btnHkRecord.Content = "СКАСУВАТИ";
-                    btnHkRecord.Background = DangerBrush;
-                    btnHkRecord.Foreground = BgBrush;
-                    txtHk.Text = "Клавіша...";
-                    txtHk.Foreground = DangerBrush;
-                    pop.PreviewKeyDown += rejoinCaptureHandler;
-                    pop.Focus();
+                    rejoinRecording = true; UnregisterRejoinHotkey();
+                    btnHkRecord.Content = "СКАСУВАТИ"; btnHkRecord.Background = DangerBrush; btnHkRecord.Foreground = BgBrush;
+                    txtHk.Text = "Клавіша..."; txtHk.Foreground = DangerBrush; pop.PreviewKeyDown += rejoinCaptureHandler; pop.Focus();
                 }
             };
 
-            Grid.SetColumn(btnHkRecord, 1);
-            hkGrid.Children.Add(btnHkRecord);
-            rejoinSettings.Children.Add(hkGrid);
+            Grid.SetColumn(btnHkRecord, 1); hkGrid.Children.Add(btnHkRecord); rejoinSettings.Children.Add(hkGrid);
+            mainStack.Children.Add(rejoinSettings); border.Child = mainStack; pop.Child = border;
 
-            mainStack.Children.Add(rejoinSettings);
-
-            border.Child = mainStack;
-            pop.Child = border;
-
-            RefreshModulesUi();
-            AttachHoverAnimations(border);
-
-            pop.IsOpen = true;
+            RefreshModulesUi(); AttachHoverAnimations(border); pop.IsOpen = true;
         }
 
-        // Внутрішні класи конфігурації
         sealed class AppConfig
         {
             public int Cps { get; set; } = 100;
@@ -1320,10 +1057,7 @@ namespace ClickerApp
             public ThemeConfig? Theme { get; set; }
         }
 
-        sealed class ModulesConfig
-        {
-            public AutoRejoinConfig AutoRejoin { get; set; } = new();
-        }
+        sealed class ModulesConfig { public AutoRejoinConfig AutoRejoin { get; set; } = new(); }
 
         sealed class AutoRejoinConfig
         {
@@ -1337,31 +1071,8 @@ namespace ClickerApp
             public int DelaySeconds { get; set; } = 3;
         }
 
-        sealed class HotkeyConfig
-        {
-            public uint Modifiers { get; set; } = ModCtrl;
-            public uint VirtualKey { get; set; } = 0x5A;
-            public string Display { get; set; } = "Z";
-        }
-
-        sealed class AntiDetectConfig
-        {
-            public bool On { get; set; }
-            public int Jitter { get; set; } = 10;
-            public int BurstChance { get; set; } = 2;
-            public int BurstMs { get; set; } = 70;
-            public int HoldMs { get; set; } = 8;
-        }
-
-        sealed class ThemeConfig
-        {
-            public string Background { get; set; } = "#0D0D0D";
-            public string Surface { get; set; } = "#1A1A1A";
-            public string Accent { get; set; } = "#00FF88";
-            public string Danger { get; set; } = "#FF3355";
-            public string Text { get; set; } = "#E0E0E0";
-            public string Muted { get; set; } = "#676767";
-            public string Line { get; set; } = "#2A2A2A";
-        }
+        sealed class HotkeyConfig { public uint Modifiers { get; set; } = ModCtrl; public uint VirtualKey { get; set; } = 0x5A; public string Display { get; set; } = "Z"; }
+        sealed class AntiDetectConfig { public bool On { get; set; } public int Jitter { get; set; } = 10; public int BurstChance { get; set; } = 2; public int BurstMs { get; set; } = 70; public int HoldMs { get; set; } = 8; }
+        sealed class ThemeConfig { public string Background { get; set; } = "#0D0D0D"; public string Surface { get; set; } = "#1A1A1A"; public string Accent { get; set; } = "#00FF88"; public string Danger { get; set; } = "#FF3355"; public string Text { get; set; } = "#E0E0E0"; public string Muted { get; set; } = "#676767"; public string Line { get; set; } = "#2A2A2A"; }
     }
 }
