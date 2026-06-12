@@ -63,8 +63,8 @@
         </Style>
 
         <Style x:Key="ChromeButton" TargetType="Button">
-            <Width>32</Width>
-            <Height>32</Height>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
@@ -250,6 +250,7 @@
                 <TextBlock Text="ГАРЯЧА КЛАВІША СТАРТ / СТОП" Style="{StaticResource SectionLabel}"/>
                 <Grid Margin="0,0,0,22">
                     <Grid.ColumnDefinitions>
+                        <DynamicResource ResourceKey="ControlFontSize"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="90"/>
                     </Grid.ColumnDefinitions>
