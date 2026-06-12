@@ -1,3 +1,4 @@
+<!-- .NET 8 (net8.0-windows), C# 12, Nullable enabled, WPF + WinForms (UseWindowsForms=true) -->
 <Window x:Class="ClickerApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -5,7 +6,7 @@
         Title="CLICKER"
         Width="440"
         SizeToContent="Height"
-        MinHeight="640" MinWidth="420"
+        MinHeight="560" MinWidth="420"
         WindowStyle="None"
         ResizeMode="NoResize"
         Background="Transparent"
@@ -23,6 +24,27 @@
         <SolidColorBrush x:Key="MutedBrush" Color="#676767"/>
         <SolidColorBrush x:Key="LineBrush" Color="#2A2A2A"/>
         <sys:Double x:Key="ControlFontSize">14</sys:Double>
+
+        <!-- Global TextBox style: no focus border highlight -->
+        <Style TargetType="TextBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <Style TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Consolas"/>
@@ -42,6 +64,7 @@
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
 
+        <!-- ChromeButton: transparent always, no fill on hover -->
         <Style x:Key="ChromeButton" TargetType="Button">
             <Setter Property="Width" Value="32"/>
             <Setter Property="Height" Value="32"/>
@@ -52,10 +75,11 @@
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                        <Border Background="Transparent" CornerRadius="6">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -70,6 +94,7 @@
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="{DynamicResource ControlFontSize}"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -88,6 +113,7 @@
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="{DynamicResource ControlFontSize}"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -109,6 +135,7 @@
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -129,6 +156,7 @@
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -144,17 +172,22 @@
     <Border Background="{DynamicResource BgBrush}" CornerRadius="18" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
         <Grid Margin="22,18,22,14">
             <Grid.RowDefinitions>
-                <RowDefinition Height="98"/>
+                <!-- Auto: shrinks to content, no wasted space at bottom of header -->
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="34"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0">
+            <!-- ══ HEADER ROW ══ -->
+            <Grid Grid.Row="0" Margin="0,0,0,0">
+                <!-- Left: title + mini-info + active module badges -->
                 <StackPanel VerticalAlignment="Top">
                     <TextBlock Text="CLICKER" Foreground="{DynamicResource AccentBrush}"
                                FontFamily="Consolas" FontSize="31" FontWeight="Bold"/>
                     <TextBlock Text="by Killmey" Foreground="{DynamicResource MutedBrush}"
                                FontSize="11" Margin="2,-2,0,0"/>
+
+                    <!-- Mini info badges row -->
                     <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                         <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="7"
                                 Padding="8,4" Margin="0,0,6,0">
@@ -175,8 +208,15 @@
                                        FontSize="10" FontWeight="Bold"/>
                         </Border>
                     </StackPanel>
+
+                    <!-- Active modules badges (WrapPanel, 2 rows if needed) -->
+                    <!-- Margin right ~154px to stay clear of floating right panel -->
+                    <WrapPanel x:Name="ActiveModulesWrap"
+                               Margin="0,5,154,8"
+                               Visibility="Collapsed"/>
                 </StackPanel>
 
+                <!-- Right: chrome + status + mode toggle -->
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Content="-" Style="{StaticResource ChromeButton}"
@@ -233,6 +273,7 @@
                 </StackPanel>
             </Grid>
 
+            <!-- ══ MAIN CONTENT ROW ══ -->
             <StackPanel Grid.Row="1">
                 <Rectangle Height="1" Fill="{DynamicResource LineBrush}" Margin="0,0,0,14"/>
 
@@ -259,6 +300,7 @@
                              Foreground="{DynamicResource AccentBrush}"
                              FontFamily="Consolas" FontSize="34" FontWeight="Bold"
                              HorizontalContentAlignment="Center"
+                             FocusVisualStyle="{x:Null}"
                              CaretBrush="Transparent"
                              LostFocus="TxtCps_LostFocus"
                              KeyDown="TxtCps_KeyDown"/>
