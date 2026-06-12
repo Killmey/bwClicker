@@ -1,307 +1,294 @@
-<Window x:Class="ClickerApp.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        Title="CLICKER"
-        Width="440"
-        SizeToContent="Height"
-        MinHeight="560" MinWidth="420"
-        WindowStyle="None"
-        ResizeMode="NoResize"
-        Background="Transparent"
-        AllowsTransparency="True"
-        WindowStartupLocation="CenterScreen"
-        MouseLeftButtonDown="Window_MouseLeftButtonDown"
-        PreviewMouseDown="Window_PreviewMouseDown">
+<Window x:Class=\"ClickerApp.MainWindow\"
+        xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"
+        xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"
+        xmlns:sys=\"clr-namespace:System;assembly=mscorlib\"
+        Title=\"CLICKER\"
+        Width=\"440\"
+        SizeToContent=\"Height\"
+        MinHeight=\"560\" MinWidth=\"420\"
+        WindowStyle=\"None\"
+        ResizeMode=\"NoResize\"
+        Background=\"Transparent\"
+        AllowsTransparency=\"True\"
+        WindowStartupLocation=\"CenterScreen\"
+        MouseLeftButtonDown=\"Window_MouseLeftButtonDown\"
+        PreviewMouseDown=\"Window_PreviewMouseDown\">
 
     <Window.Resources>
-        <SolidColorBrush x:Key="BgBrush" Color="#0D0D0D"/>
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#1A1A1A"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#00FF88"/>
-        <SolidColorBrush x:Key="DangerBrush" Color="#FF3355"/>
-        <SolidColorBrush x:Key="TextBrush" Color="#E0E0E0"/>
-        <SolidColorBrush x:Key="MutedBrush" Color="#676767"/>
-        <SolidColorBrush x:Key="LineBrush" Color="#2A2A2A"/>
-        <sys:Double x:Key="ControlFontSize">14</sys:Double>
+        <SolidColorBrush x:Key=\"BgBrush\" Color=\"#0D0D0D\"/>
+        <SolidColorBrush x:Key=\"SurfaceBrush\" Color=\"#1A1A1A\"/>
+        <SolidColorBrush x:Key=\"AccentBrush\" Color=\"#00FF88\"/>
+        <SolidColorBrush x:Key=\"DangerBrush\" Color=\"#FF3355\"/>
+        <SolidColorBrush x:Key=\"TextBrush\" Color=\"#E0E0E0\"/>
+        <SolidColorBrush x:Key=\"MutedBrush\" Color=\"#676767\"/>
+        <SolidColorBrush x:Key=\"LineBrush\" Color=\"#2A2A2A\"/>
+        <sys:Double x:Key=\"AnimTime\">0.2</sys:Double>
 
-        <Style TargetType="TextBox">
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
+        <Style x:Key=\"FlatButton\" TargetType=\"Button\">
+            <Setter Property=\"Background\" Value=\"{StaticResource SurfaceBrush}\"/>
+            <Setter Property=\"Foreground\" Value=\"{StaticResource TextBrush}\"/>
+            <Setter Property=\"BorderThickness\" Value=\"0\"/>
+            <Setter Property=\"Padding\" Value=\"12,6\"/>
+            <Setter Property=\"FontWeight\" Value=\"SemiBold\"/>
+            <Setter Property=\"Focusable\" Value=\"False\"/>
+            <Setter Property=\"Cursor\" Value=\"Hand\"/>
+            <Setter Property=\"Template\">
                 <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="{TemplateBinding Padding}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          HorizontalScrollBarVisibility="Hidden"
-                                          VerticalScrollBarVisibility="Hidden"/>
+                    <ControlTemplate TargetType=\"Button\">
+                        <Border Background=\"{TemplateBinding Background}\"
+                                BorderBrush=\"{TemplateBinding BorderBrush}\"
+                                BorderThickness=\"{TemplateBinding BorderThickness}\"
+                                CornerRadius=\"6\">
+                            <ContentPresenter HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
-        </Style>
-
-        <Style x:Key="SectionLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="0,0,0,7"/>
-        </Style>
-
-        <Style x:Key="PanelTitle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-        </Style>
-
-        <Style x:Key="ChromeButton" TargetType="Button">
-            <Setter Property="Width" Value="32"/>
-            <Setter Property="Height" Value="32"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
+        <Style x:Key=\"FlatTextBox\" TargetType=\"TextBox\">
+            <Setter Property=\"Background\" Value=\"{StaticResource SurfaceBrush}\"/>
+            <Setter Property=\"Foreground\" Value=\"{StaticResource TextBrush}\"/>
+            <Setter Property=\"BorderThickness\" Value=\"1\"/>
+            <Setter Property=\"BorderBrush\" Value=\"{StaticResource LineBrush}\"/>
+            <Setter Property=\"Padding\" Value=\"8,6\"/>
+            <Setter Property=\"CaretBrush\" Value=\"{StaticResource AccentBrush}\"/>
+            <Setter Property=\"SelectionBrush\" Value=\"{StaticResource AccentBrush}\"/>
+            <Setter Property=\"Template\">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="Transparent" CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <ControlTemplate TargetType=\"TextBox\">
+                        <Border x:Name=\"border\" Background=\"{TemplateBinding Background}\"
+                                BorderBrush=\"{TemplateBinding BorderBrush}\"
+                                BorderThickness=\"{TemplateBinding BorderThickness}\"
+                                CornerRadius=\"4\">
+                            <ScrollViewer x:Name=\"PART_ContentHost\" Focusable=\"false\" HorizontalScrollBarVisibility=\"Hidden\" VerticalScrollBarVisibility=\"Hidden\"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property=\"IsFocused\" Value=\"True\">
+                                <Setter TargetName=\"border\" Property=\"BorderBrush\" Value=\"{StaticResource AccentBrush}\"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <Style x:Key="FlatButton" TargetType="Button">
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="FontSize" Value="{DynamicResource ControlFontSize}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
+        <Style x:Key=\"FlatSlider\" TargetType=\"Slider\">
+            <Setter Property=\"Background\" Value=\"{StaticResource LineBrush}\"/>
+            <Setter Property=\"Maximum\" Value=\"100\"/>
+            <Setter Property=\"Minimum\" Value=\"0\"/>
+            <Setter Property=\"Focusable\" Value=\"False\"/>
+            <Setter Property=\"Template\">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="SegmentButton" TargetType="ToggleButton">
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="FontSize" Value="{DynamicResource ControlFontSize}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="PillModeButton" TargetType="ToggleButton">
-            <Setter Property="Width" Value="54"/>
-            <Setter Property="Height" Value="24"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="FontSize" Value="10"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="ModulesButton" TargetType="Button">
-            <Setter Property="Width" Value="28"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="{DynamicResource LineBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="CustomSlider" TargetType="Slider">
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Slider">
-                        <Grid>
-                            <Border Background="{DynamicResource LineBrush}" Height="4" CornerRadius="2" VerticalAlignment="Center"/>
-                            <Track x:Name="PART_Track">
+                    <ControlTemplate TargetType=\"Slider\">
+                        <Grid MyArrangeOverride=\"True\">
+                            <Border Name=\"TrackBackground\" Background=\"{TemplateBinding Background}\" Height=\"4\" CornerRadius=\"2\" VerticalAlignment=\"Center\"/>
+                            <Track Name=\"PART_Track\">
                                 <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="Slider.DecreaseLarge" Background="Transparent" BorderThickness="0"/>
+                                    <RepeatButton Command=\"Slider.DecreaseLarge\" Background=\"{StaticResource AccentBrush}\" Height=\"4\" Focusable=\"False\">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType=\"RepeatButton\">
+                                                <Border Background=\"{TemplateBinding Background}\" CornerRadius=\"2\"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
                                 </Track.DecreaseRepeatButton>
                                 <Track.Thumb>
-                                    <Thumb Width="14" Height="14" Cursor="Hand">
+                                    <Thumb Width=\"14\" Height=\"14\" Focusable=\"False\" Cursor=\"Hand\">
                                         <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Ellipse Fill="{DynamicResource AccentBrush}"/>
+                                            <ControlTemplate TargetType=\"Thumb\">
+                                                <Ellipse Fill=\"{StaticResource TextBrush}\" Stroke=\"{StaticResource AccentBrush}\" StrokeThickness=\"2\"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
                                 </Track.Thumb>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="Slider.IncreaseLarge" Background="Transparent" BorderThickness="0"/>
-                                </Track.IncreaseRepeatButton>
                             </Track>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key=\"FlatToggle\" TargetType=\"ToggleButton\">
+            <Setter Property=\"Cursor\" Value=\"Hand\"/>
+            <Setter Property=\"Focusable\" Value=\"False\"/>
+            <Setter Property=\"Template\">
+                <Setter.Value>
+                    <ControlTemplate TargetType=\"ToggleButton\">
+                        <Border x:Name=\"Bg\" Width=\"44\" Height=\"22\" CornerRadius=\"11\" Background=\"{StaticResource LineBrush}\">
+                            <Ellipse x:Name=\"Dot\" Width=\"14\" Height=\"14\" HorizontalAlignment=\"Left\" Margin=\"4,0,4,0\" Fill=\"{StaticResource MutedBrush}\">
+                                <Ellipse.RenderTransform>
+                                    <TranslateTransform X=\"0\"/>
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property=\"IsChecked\" Value=\"True\">
+                                <Setter TargetName=\"Bg\" Property=\"Background\" Value=\"#104028\"/>
+                                <Setter TargetName=\"Dot\" Property=\"Fill\" Value=\"{StaticResource AccentBrush}\"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName=\"Dot\" Storyboard.TargetProperty=\"(UIElement.RenderTransform).(TranslateTransform.X)\" To=\"22\" Duration=\"0:0:0.15\"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName=\"Dot\" Storyboard.TargetProperty=\"(UIElement.RenderTransform).(TranslateTransform.X)\" To=\"0\" Duration=\"0:0:0.15\"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
-    <Border Background="{DynamicResource BgBrush}" CornerRadius="18" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
-        <Grid Margin="22,18,22,14">
+    <Border Background=\"{StaticResource BgBrush}\" CornerRadius=\"12\" BorderThickness=\"1\" BorderBrush=\"{StaticResource LineBrush}\" Margin=\"5\">
+        <Grid Margin=\"20,16,20,16\">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="34"/>
-            </Grid.RowDefinitions>
+                <RowDefinition Height=\"Auto\"/> <RowDefinition Height=\"*\"/>    <RowDefinition Height=\"Auto\"/> </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Margin="0,0,0,0">
-                <StackPanel VerticalAlignment="Top">
-                    <TextBlock Text="CLICKER" Foreground="{DynamicResource AccentBrush}" FontFamily="Consolas" FontSize="31" FontWeight="Bold"/>
-                    <TextBlock Text="by Killmey" Foreground="{DynamicResource MutedBrush}" FontSize="11" Margin="2,-2,0,0"/>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="7" Padding="8,4" Margin="0,0,6,0">
-                            <TextBlock x:Name="MiniMode" Text="ПКМ" Foreground="{DynamicResource AccentBrush}" FontSize="10" FontWeight="Bold"/>
-                        </Border>
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="7" Padding="8,4" Margin="0,0,6,0">
-                            <TextBlock x:Name="MiniCps" Text="100 CPS" Foreground="{DynamicResource TextBrush}" FontSize="10" FontWeight="Bold"/>
-                        </Border>
-                        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="7" Padding="8,4">
-                            <TextBlock x:Name="MiniHotkey" Text="Ctrl + Z" Foreground="{DynamicResource MutedBrush}" FontSize="10" FontWeight="Bold"/>
-                        </Border>
-                    </StackPanel>
-
-                    <WrapPanel x:Name="ActiveModulesWrap" Margin="0,5,154,8" Visibility="Collapsed"/>
+            <Grid Grid.Row=\"0\" Margin=\"0,0,0,14\">
+                <StackPanel Orientation=\"Horizontal\" VerticalAlignment=\"Center\">
+                    <Image Source=\"icon.ico\" Width=\"20\" Height=\"20\" Margin=\"0,0,8,0\" RenderOptions.BitmapScalingMode=\"HighQuality\"/>
+                    <TextBlock Text=\"PERFECT CLICKER\" Foreground=\"{StaticResource TextBrush}\" FontSize=\"15\" FontWeight=\"Bold\" LetterSpacing=\"1\"/>
                 </StackPanel>
-
-                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Top">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="-" Style="{StaticResource ChromeButton}" Click="Minimize_Click" ToolTip="Згорнути"/>
-                        <Button Content="x" Style="{StaticResource ChromeButton}" Click="Close_Click" ToolTip="Закрити"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,7,0,0">
-                        <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{DynamicResource MutedBrush}" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="StatusText" Text="IDLE" Foreground="{DynamicResource MutedBrush}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" Margin="7,0,0,0"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,11,0,0">
-                        <Button x:Name="BtnModules" Content="▤" Style="{StaticResource ModulesButton}" Click="BtnModules_Click" ToolTip="Модулі" Margin="0,0,6,0"/>
-                        <Border x:Name="RunModeShell" Width="112" Height="28" Background="{DynamicResource LineBrush}" CornerRadius="14" ClipToBounds="True">
-                            <Grid>
-                                <Border x:Name="RunModeThumb" Width="54" Height="24" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0" Background="{DynamicResource SurfaceBrush}" CornerRadius="12">
-                                    <Border.RenderTransform>
-                                        <TranslateTransform/>
-                                    </Border.RenderTransform>
-                                </Border>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition/>
-                                        <ColumnDefinition/>
-                                    </Grid.ColumnDefinitions>
-                                    <ToggleButton x:Name="BtnStayMode" Content="STAY" Style="{StaticResource PillModeButton}" Click="RunMode_Click"/>
-                                    <ToggleButton x:Name="BtnHoldMode" Grid.Column="1" Content="HOLD" Style="{StaticResource PillModeButton}" Click="RunMode_Click"/>
-                                </Grid>
-                            </Grid>
-                        </Border>
-                    </StackPanel>
+                <StackPanel Orientation=\"Horizontal\" HorizontalAlignment=\"Right\">
+                    <Button Content=\"—\" Style=\"{StaticResource FlatButton}\" Padding=\"8,2\" Background=\"Transparent\" Foreground=\"{StaticResource MutedBrush}\" Click=\"BtnMinimize_Click\" Margin=\"0,0,4,0\"/>
+                    <Button Content=\"✕\" Style=\"{StaticResource FlatButton}\" Padding=\"8,2\" Background=\"Transparent\" Foreground=\"{StaticResource DangerBrush}\" Click=\"BtnClose_Click\"/>
                 </StackPanel>
             </Grid>
 
-            <StackPanel Grid.Row="1">
-                <Rectangle Height="1" Fill="{DynamicResource LineBrush}" Margin="0,0,0,14"/>
-
-                <TextBlock Text="КНОПКА МИШІ" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <ToggleButton x:Name="BtnLmb" Content="ЛКМ" Style="{StaticResource SegmentButton}" Click="BtnLmb_Click" Margin="0,0,5,0"/>
-                    <ToggleButton x:Name="BtnRmb" Grid.Column="1" Content="ПКМ" Style="{StaticResource SegmentButton}" Click="BtnRmb_Click" Margin="5,0,0,0"/>
-                </Grid>
-
-                <TextBlock Text="КЛІКІВ НА СЕКУНДУ" Style="{StaticResource SectionLabel}"/>
-                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="0,7" Margin="0,0,0,10">
-                    <TextBox x:Name="TxtCps" Text="100" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AccentBrush}" FontFamily="Consolas" FontSize="34" FontWeight="Bold" HorizontalContentAlignment="Center" FocusVisualStyle="{x:Null}" CaretBrush="Transparent" LostFocus="TxtCps_LostFocus"/>
-                </Border>
-                
-                <Slider x:Name="SldCps" Minimum="1" Maximum="100" Value="100" Style="{StaticResource CustomSlider}" Margin="2,0,2,16" ValueChanged="SldCps_ValueChanged"/>
-
-                <TextBlock Text="ГАРЯЧА КЛАВІША" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="108"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="9" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Height="42" Padding="13,0">
-                        <TextBlock x:Name="TxtHotkey" Text="Ctrl + Z" Foreground="{DynamicResource AccentBrush}" FontSize="{DynamicResource ControlFontSize}" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Grid Grid.Row=\"1\" Margin=\"0,0,0,10\">
+                <StackPanel x:Name=\"MenuMain\" Visibility=\"Visible\">
+                    <Border Background=\"{StaticResource SurfaceBrush}\" CornerRadius=\"8\" Padding=\"14\" Margin=\"0,0,0,12\">
+                        <StackPanel>
+                            <Grid Margin=\"0,0,0,8\">
+                                <TextBlock Text=\"Кліків за секунду (CPS)\" Foreground=\"{StaticResource TextBrush}\" FontSize=\"13\" FontWeight=\"Medium\"/>
+                                <StackPanel Orientation=\"Horizontal\" HorizontalAlignment=\"Right\">
+                                    <TextBox x:Name=\"TxtCps\" Text=\"10\" Style=\"{StaticResource FlatTextBox}\" Width=\"45\" HorizontalContentAlignment=\"Center\" Padding=\"4,2\" BorderThickness=\"0\" Background=\"#222\" TextChanged=\"TxtCps_TextChanged\" MaxLength=\"3\"/>
+                                    <TextBlock Text=\" CPS\" Foreground=\"{StaticResource MutedBrush}\" VerticalAlignment=\"Center\" Margin=\"4,0,0,0\" FontSize=\"12\"/>
+                                </StackPanel>
+                            </Grid>
+                            <Slider x:Name=\"SldCps\" Style=\"{StaticResource FlatSlider}\" Minimum=\"1\" Maximum=\"100\" Value=\"10\" ValueChanged=\"SldCps_ValueChanged\"/>
+                        </StackPanel>
                     </Border>
-                    <Button x:Name="BtnRecord" Grid.Column="1" Content="ЗАПИС" Style="{StaticResource FlatButton}" Click="BtnRecord_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource TextBrush}" Margin="8,0,0,0"/>
-                </Grid>
 
-                <TextBlock Text="ВИГЛЯД" Style="{StaticResource SectionLabel}"/>
-                <Button Content="КОЛЬОРИ ТА ШРИФТ" Style="{StaticResource FlatButton}" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,18"/>
+                    <Border Background=\"{StaticResource SurfaceBrush}\" CornerRadius=\"8\" Padding=\"14\" Margin=\"0,0,0,12\">
+                        <Grid>
+                            <TextBlock Text=\"Кнопка взаємодії\" Foreground=\"{StaticResource TextBrush}\" VerticalAlignment=\"Center\" FontSize=\"13\" FontWeight=\"Medium\"/>
+                            <StackPanel Orientation=\"Horizontal\" HorizontalAlignment=\"Right\">
+                                <RadioButton x:Name=\"RadLeftClick\" Content=\"LMB\" IsChecked=\"True\" Foreground=\"{StaticResource TextBrush}\" Margin=\"0,0,14,0\" Focusable=\"False\" Cursor=\"Hand\" Checked=\"RadMouse_Checked\"/>
+                                <RadioButton x:Name=\"RadRightClick\" Content=\"RMB\" Foreground=\"{StaticResource TextBrush}\" Focusable=\"False\" Cursor=\"Hand\" Checked=\"RadMouse_Checked\"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-                <Grid>
+                    <Border Background=\"{StaticResource SurfaceBrush}\" CornerRadius=\"8\" Padding=\"14\" Margin=\"0,0,0,12\">
+                        <StackPanel>
+                            <Grid>
+                                <TextBlock Text=\"Додаткові модулі\" Foreground=\"{StaticResource TextBrush}\" VerticalAlignment=\"Center\" FontSize=\"13\" FontWeight=\"Medium\"/>
+                                <ToggleButton x:Name=\"TglModules\" Style=\"{StaticResource FlatToggle}\" HorizontalAlignment=\"Right\" Checked=\"TglModules_Checked\" Unchecked=\"TglModules_Unchecked\"/>
+                            </Grid>
+
+                            <StackPanel x:Name=\"PanelSubModules\" Height=\"0\" Opacity=\"0\" Visibility=\"Collapsed\">
+                                <Border Height=\"1\" Background=\"{StaticResource LineBrush}\" Margin=\"0,12,0,12\"/>
+                                
+                                <Grid Margin=\"0,0,0,10\">
+                                    <StackPanel>
+                                        <TextBlock Text=\"Фіксація на цілі (Stay on target)\" Foreground=\"{StaticResource TextBrush}\" FontSize=\"12\" FontWeight=\"SemiBold\"/>
+                                        <TextBlock Text=\"Клікер працює лише коли курсор на ворогові\" Foreground=\"{StaticResource MutedBrush}\" FontSize=\"11\" TextWrapping=\"Wrap\" Margin=\"0,2,40,0\"/>
+                                    </StackPanel>
+                                    <ToggleButton x:Name=\"TglStayTarget\" Style=\"{StaticResource FlatToggle}\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" Checked=\"Module_StateChanged\" Unchecked=\"Module_StateChanged\"/>
+                                </Grid>
+
+                                <Grid>
+                                    <StackPanel>
+                                        <TextBlock Text=\"Утримання вибору (Hold selection)\" Foreground=\"{StaticResource TextBrush}\" FontSize=\"12\" FontWeight=\"SemiBold\"/>
+                                        <TextBlock Text=\"Забороняє скидати фокус з поточної цілі\" Foreground=\"{StaticResource MutedBrush}\" FontSize=\"11\" TextWrapping=\"Wrap\" Margin=\"0,2,40,0\"/>
+                                    </StackPanel>
+                                    <ToggleButton x:Name=\"TglHoldSelect\" Style=\"{StaticResource FlatToggle}\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Center\" Checked=\"Module_StateChanged\" Unchecked=\"Module_StateChanged\"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content=\"⚙  НАЛАШТУВАННЯ МОДУЛІВ\" Style=\"{StaticResource FlatButton}\" Height=\"38\" Margin=\"0,0,0,12\" Click=\"BtnGoToModules_Click\" Background=\"#151515\" BorderThickness=\"1\" BorderBrush=\"{StaticResource LineBrush}\"/>
+                </StackPanel>
+
+                <StackPanel x:Name=\"MenuModules\" Visibility=\"Collapsed\">
+                    <Border Background=\"{StaticResource SurfaceBrush}\" CornerRadius=\"8\" Padding=\"14\" Margin=\"0,0,0,12\">
+                        <StackPanel>
+                            <Grid Margin=\"0,0,0,8\">
+                                <TextBlock Text=\"Авто-перезахід (Auto-rejoin)\" Foreground=\"{StaticResource TextBrush}\" FontSize=\"13\" FontWeight=\"Medium\"/>
+                                <ToggleButton x:Name=\"TglAutoRejoin\" Style=\"{StaticResource FlatToggle}\" HorizontalAlignment=\"Right\" Checked=\"Module_StateChanged\" Unchecked=\"Module_StateChanged\"/>
+                            </Grid>
+                            <TextBlock Text=\"Команди /leave та /rejoin з кастомною затримкою\" Foreground=\"{StaticResource MutedBrush}\" FontSize=\"11\" Margin=\"0,0,0,10\" TextWrapping=\"Wrap\"/>
+
+                            <Grid Margin=\"0,4,0,6\">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width=\"*\"/>
+                                    <ColumnDefinition Width=\"*\"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin=\"0,0,6,0\">
+                                    <TextBlock Text=\"Клава затримки (сек)\" Foreground=\"{StaticResource MutedBrush}\" FontSize=\"11\" Margin=\"0,0,0,4\"/>
+                                    <TextBox x:Name=\"TxtRejoinDelay\" Text=\"3.0\" Style=\"{StaticResource FlatTextBox}\" TextChanged=\"TxtRejoinDelay_TextChanged\"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column=\"1\" Margin=\"6,0,0,0\">
+                                    <TextBlock Text=\"Гаряча клавіша\" Foreground=\"{StaticResource MutedBrush}\" FontSize=\"11\" Margin=\"0,0,0,4\"/>
+                                    <Button x:Name=\"BtnRejoinHotkey\" Content=\"CTRL + Z\" Style=\"{StaticResource FlatButton}\" Height=\"32\" FontSize=\"12\" Click=\"BtnRejoinHotkey_Click\" Background=\"#222\"/>
+                                </StackPanel>
+                            </Grid>
+                            <Slider x:Name=\"SldRejoinDelay\" Style=\"{StaticResource FlatSlider}\" Minimum=\"1\" Maximum=\"10\" Value=\"3\" Margin=\"0,6,0,0\" ValueChanged=\"SldRejoinDelay_ValueChanged\"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background=\"{StaticResource SurfaceBrush}\" CornerRadius=\"8\" Padding=\"14\" Margin=\"0,0,0,12\">
+                        <StackPanel>
+                            <Grid Margin=\"0,0,0,6\">
+                                <TextBlock Text=\"Розумний рандомайзер таймінгів\" Foreground=\"{StaticResource TextBrush}\" FontSize=\"13\" FontWeight=\"Medium\"/>
+                                <ToggleButton x:Name=\"TglAntiDetect\" Style=\"{StaticResource FlatToggle}\" HorizontalAlignment=\"Right\" Checked=\"Module_StateChanged\" Unchecked=\"Module_StateChanged\"/>
+                            </Grid>
+                            <TextBlock Text=\"Імітує утримання клавіші та додає мікро-джиттер клікам\" Foreground=\"{StaticResource MutedBrush}\" FontSize=\"11\" TextWrapping=\"Wrap\"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content=\"←  НАЗАД ДО ГОЛОВНОГО\" Style=\"{StaticResource FlatButton}\" Height=\"38\" Margin=\"0,0,0,12\" Click=\"BtnBackToMain_Click\" Background=\"#151515\" BorderThickness=\"1\" BorderBrush=\"{StaticResource LineBrush}\"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row=\"2\" VerticalAlignment=\"Bottom\" Panel.ZIndex=\"10\" Margin=\"0,10,0,0\">
+                <Border Height=\"1\" Background=\"{StaticResource LineBrush}\" Margin=\"0,0,0,14\"/>
+
+                <Grid Margin=\"0,0,0,14\">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width=\"*\"/>
+                        <ColumnDefinition Width=\"*\"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="BtnStart" Content="▶  СТАРТ" Style="{StaticResource FlatButton}" Click="BtnStart_Click" Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource BgBrush}" Height="50" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnStop" Grid.Column="1" Content="■  СТОП" Style="{StaticResource FlatButton}" Click="BtnStop_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource DangerBrush}" Height="50" Margin="6,0,0,0"/>
+                    <Button x:Name=\"BtnStart\" Content=\"▶  СТАРТ\"
+                            Style=\"{StaticResource FlatButton}\"
+                            Click=\"BtnStart_Click\"
+                            Background=\"{DynamicResource AccentBrush}\"
+                            Foreground=\"{DynamicResource BgBrush}\"
+                            Height=\"50\" Margin=\"0,0,6,0\"/>
+                    <Button x:Name=\"BtnStop\" Grid.Column=\"1\" Content=\"■  СТОП\"
+                            Style=\"{StaticResource FlatButton}\"
+                            Click=\"BtnStop_Click\"
+                            Background=\"{DynamicResource LineBrush}\"
+                            Foreground=\"{DynamicResource DangerBrush}\"
+                            Height=\"50\" Margin=\"6,0,0,0\"/>
                 </Grid>
-            </StackPanel>
 
-            <TextBlock Grid.Row="2" Text="SendInput  ·  WPF  ·  Windows" Foreground="{DynamicResource MutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                <TextBlock Text=\"SendInput  ·  WPF  ·  Windows\"
+                           Foreground=\"{DynamicResource MutedBrush}\"
+                           FontSize=\"12\" HorizontalAlignment=\"Center\"
+                           IsHitTestVisible=\"False\" Margin=\"0,4,0,0\"/>
+            </StackPanel>
         </Grid>
     </Border>
 </Window>
