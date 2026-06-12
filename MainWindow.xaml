@@ -190,7 +190,7 @@
                             <TextBlock x:Name="MiniHotkey" Text="Ctrl + Z" Foreground="{DynamicResource MutedBrush}" FontSize="10" FontWeight="Bold"/>
                         </Border>
                     </StackPanel>
-                    
+
                     <WrapPanel x:Name="ActiveModulesWrap" Margin="0,5,154,8" Visibility="Collapsed"/>
                 </StackPanel>
 
@@ -226,65 +226,50 @@
                 </StackPanel>
             </Grid>
 
-            <StackPanel Grid.Row="1" Margin="0,16,0,0" VerticalAlignment="Top">
-                <TextBlock Text="ШВИДКІСТЬ КЛІКІВ (CPS)" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="74"/>
-                    </Grid.ColumnDefinitions>
-                    <Slider x:Name="SldCps" Minimum="1" Maximum="200" Value="100" IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" Margin="0,0,14,0" ValueChanged="SldCps_ValueChanged"/>
-                    <TextBox x:Name="TxtCps" Grid.Column="1" Text="100" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Height="34" FontSize="14" FontWeight="Bold" FontFamily="Consolas" VerticalContentAlignment="Center" Padding="8,0" TextAlignment="Center" TextChanged="TxtCps_TextChanged" LostFocus="TxtCps_LostFocus"/>
-                </Grid>
+            <StackPanel Grid.Row="1">
+                <Rectangle Height="1" Fill="{DynamicResource LineBrush}" Margin="0,0,0,14"/>
 
                 <TextBlock Text="КНОПКА МИШІ" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,18">
+                <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <ToggleButton x:Name="BtnLmb" Content="ЛКМ" Style="{StaticResource SegmentButton}" Click="BtnLmb_Click" Margin="0,0,6,0"/>
-                    <ToggleButton x:Name="BtnRmb" Grid.Column="1" Content="ПКМ" Style="{StaticResource SegmentButton}" Click="BtnRmb_Click" Margin="6,0,0,0"/>
+                    <ToggleButton x:Name="BtnLmb" Content="ЛКМ" Style="{StaticResource SegmentButton}" Click="MouseButton_Click" Margin="0,0,5,0"/>
+                    <ToggleButton x:Name="BtnRmb" Grid.Column="1" Content="ПКМ" Style="{StaticResource SegmentButton}" Click="MouseButton_Click" Margin="5,0,0,0"/>
                 </Grid>
 
-                <TextBlock Text="ГАРЯЧА КЛАВІША СТАРТ / СТОП" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,22">
+                <TextBlock Text="КЛІКІВ НА СЕКУНДУ" Style="{StaticResource SectionLabel}"/>
+                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="0,7" Margin="0,0,0,16">
+                    <TextBox x:Name="TxtCps" Text="100" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AccentBrush}" FontFamily="Consolas" FontSize="34" FontWeight="Bold" HorizontalContentAlignment="Center" FocusVisualStyle="{x:Null}" CaretBrush="Transparent" LostFocus="TxtCps_LostFocus" KeyDown="TxtCps_KeyDown"/>
+                </Border>
+
+                <TextBlock Text="ГАРЯЧА КЛАВІША" Style="{StaticResource SectionLabel}"/>
+                <Grid Margin="0,0,0,16">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="108"/>
                     </Grid.ColumnDefinitions>
-                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" BorderThickness="1" BorderBrush="{DynamicResource LineBrush}" Height="42" Margin="0,0,10,0">
-                        <TextBlock x:Name="TxtHotkey" Text="Ctrl + Z" Foreground="{DynamicResource AccentBrush}" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="9" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Height="42" Padding="13,0">
+                        <TextBlock x:Name="TxtHotkey" Text="Ctrl + Z" Foreground="{DynamicResource AccentBrush}" FontSize="{DynamicResource ControlFontSize}" FontWeight="Bold" VerticalAlignment="Center"/>
                     </Border>
-                    <Button x:Name="BtnRecord" Grid.Column="1" Content="ЗАПИС" Style="{StaticResource FlatButton}" Click="BtnRecord_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource TextBrush}"/>
+                    <Button x:Name="BtnRecord" Grid.Column="1" Content="ЗАПИС" Style="{StaticResource FlatButton}" Click="BtnRecord_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource TextBrush}" Margin="8,0,0,0"/>
                 </Grid>
 
-                <Border Height="1" Background="{DynamicResource LineBrush}" Margin="0,0,0,18"/>
+                <TextBlock Text="ВИГЛЯД" Style="{StaticResource SectionLabel}"/>
+                <Button Content="КОЛЬОРИ ТА ШРИФТ" Style="{StaticResource FlatButton}" Click="BtnAppearance_Click" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,18"/>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="BtnStart" Content="▶  СТАРТ"
-                            Style="{StaticResource FlatButton}"
-                            Click="BtnStart_Click"
-                            Background="{DynamicResource AccentBrush}"
-                            Foreground="{DynamicResource BgBrush}"
-                            Height="50" Margin="0,0,6,0"/>
-                    <Button x:Name="BtnStop" Grid.Column="1" Content="■  СТОП"
-                            Style="{StaticResource FlatButton}"
-                            Click="BtnStop_Click"
-                            Background="{DynamicResource LineBrush}"
-                            Foreground="{DynamicResource DangerBrush}"
-                            Height="50" Margin="6,0,0,0"/>
+                    <Button x:Name="BtnStart" Content="▶  СТАРТ" Style="{StaticResource FlatButton}" Click="BtnStart_Click" Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource BgBrush}" Height="50" Margin="0,0,6,0"/>
+                    <Button x:Name="BtnStop" Grid.Column="1" Content="■  СТОП" Style="{StaticResource FlatButton}" Click="BtnStop_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource DangerBrush}" Height="50" Margin="6,0,0,0"/>
                 </Grid>
             </StackPanel>
 
-            <TextBlock Grid.Row="2" Text="SendInput  ·  WPF  ·  Windows"
-                       Foreground="{DynamicResource MutedBrush}"
-                       FontSize="12" HorizontalAlignment="Center"
-                       VerticalAlignment="Bottom"/>
+            <TextBlock Grid.Row="2" Text="SendInput  ·  WPF  ·  Windows" Foreground="{DynamicResource MutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
         </Grid>
     </Border>
 </Window>
