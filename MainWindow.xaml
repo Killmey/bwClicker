@@ -256,7 +256,7 @@
                     <Button x:Name="BtnRecord" Grid.Column="1" Content="ЗАПИС" Style="{StaticResource FlatButton}" Click="BtnRecord_Click" Background="{DynamicResource LineBrush}" Foreground="{DynamicResource TextBrush}" Margin="8,0,0,0"/>
                 </Grid>
 
-                <TextBlock Text="ВИГЛЯД" Style=\"{StaticResource SectionLabel}\"/>
+                <TextBlock Text="ВИГЛЯД" Style="{StaticResource SectionLabel}"/>
                 <Button Content="КОЛЬОРИ ТА ШРИФТ" Style="{StaticResource FlatButton}" Click="BtnAppearance_Click" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,18"/>
 
                 <Grid>
