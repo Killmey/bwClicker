@@ -164,6 +164,39 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="CustomSlider" TargetType="Slider">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid MyNotify:ControlHeight="Auto">
+                            <Border DrawBackground="True" Background="{DynamicResource LineBrush}" Height="4" CornerRadius="2" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Background="Transparent" BorderThickness="0"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="14" Height="14" Cursor="Hand">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="{DynamicResource AccentBrush}"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                        <Thumb.RenderTransform>
+                                            <TranslateTransform Y="0"/>
+                                        </Thumb.RenderTransform>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Background="Transparent" BorderThickness="0"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Border Background="{DynamicResource BgBrush}" CornerRadius="18" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
@@ -240,9 +273,11 @@
                 </Grid>
 
                 <TextBlock Text="КЛІКІВ НА СЕКУНДУ" Style="{StaticResource SectionLabel}"/>
-                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="0,7" Margin="0,0,0,16">
+                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="0,7" Margin="0,0,0,10">
                     <TextBox x:Name="TxtCps" Text="100" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AccentBrush}" FontFamily="Consolas" FontSize="34" FontWeight="Bold" HorizontalContentAlignment="Center" FocusVisualStyle="{x:Null}" CaretBrush="Transparent" LostFocus="TxtCps_LostFocus" KeyDown="TxtCps_KeyDown"/>
                 </Border>
+                
+                <Slider x:Name="SldCps" Minimum="1" Maximum="100" Value="100" Style="{StaticResource CustomSlider}" Margin="2,0,2,16" ValueChanged="SldCps_ValueChanged"/>
 
                 <TextBlock Text="ГАРЯЧА КЛАВІША" Style="{StaticResource SectionLabel}"/>
                 <Grid Margin="0,0,0,16">
