@@ -271,7 +271,7 @@
 
                 <TextBlock Text="КЛІКІВ НА СЕКУНДУ" Style="{StaticResource SectionLabel}"/>
                 <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" Padding="0,7" Margin="0,0,0,10">
-                    <TextBox x:Name="TxtCps" Text="100" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AccentBrush}" FontFamily="Consolas" FontSize="34" FontWeight="Bold" HorizontalContentAlignment="Center" FocusVisualStyle="{x:Null}" CaretBrush="Transparent" LostFocus="TxtCps_LostFocus" PreviewTextInput="TxtCps_PreviewTextInput"/>
+                    <TextBox x:Name="TxtCps" Text="100" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource AccentBrush}" FontFamily="Consolas" FontSize="34" FontWeight="Bold" HorizontalContentAlignment="Center" FocusVisualStyle="{x:Null}" CaretBrush="Transparent" LostFocus="TxtCps_LostFocus"/>
                 </Border>
                 
                 <Slider x:Name="SldCps" Minimum="1" Maximum="100" Value="100" Style="{StaticResource CustomSlider}" Margin="2,0,2,16" ValueChanged="SldCps_ValueChanged"/>
@@ -289,7 +289,7 @@
                 </Grid>
 
                 <TextBlock Text="ВИГЛЯД" Style="{StaticResource SectionLabel}"/>
-                <Button Content="КОЛЬОРИ ТА ШРИФТ" Style="{StaticResource FlatButton}" Click="BtnColors_Click" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,18"/>
+                <Button Content="КОЛЬОРИ ТА ШРИФТ" Style="{StaticResource FlatButton}" Background="{DynamicResource SurfaceBrush}" Foreground="{DynamicResource TextBrush}" Margin="0,0,0,18"/>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
