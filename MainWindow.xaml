@@ -85,7 +85,7 @@
         </Style>
 
         <Style x:Key="FlatButton" TargetType="Button">
-            <Height>42</Height>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontFamily" Value="Consolas"/>
@@ -104,7 +104,7 @@
         </Style>
 
         <Style x:Key="SegmentButton" TargetType="ToggleButton">
-            <Height>42</Height>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontFamily" Value="Consolas"/>
@@ -123,8 +123,8 @@
         </Style>
 
         <Style x:Key="PillModeButton" TargetType="ToggleButton">
-            <Width>54</Width>
-            <Height>24</Height>
+            <Setter Property="Width" Value="54"/>
+            <Setter Property="Height" Value="24"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
@@ -145,8 +145,8 @@
         </Style>
 
         <Style x:Key="ModulesButton" TargetType="Button">
-            <Width>28</Width>
-            <Height>28</Height>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Background" Value="{DynamicResource LineBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
@@ -214,8 +214,8 @@
                                 </Border>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition/>
-                                        <ColumnDefinition/>
+                                        <Grid.ColumnDefinition/>
+                                        <Grid.ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
                                     <ToggleButton x:Name="BtnStayMode" Content="STAY" Style="{StaticResource PillModeButton}" Click="RunMode_Click"/>
                                     <ToggleButton x:Name="BtnHoldMode" Grid.Column="1" Content="HOLD" Style="{StaticResource PillModeButton}" Click="RunMode_Click"/>
@@ -250,7 +250,6 @@
                 <TextBlock Text="ГАРЯЧА КЛАВІША СТАРТ / СТОП" Style="{StaticResource SectionLabel}"/>
                 <Grid Margin="0,0,0,22">
                     <Grid.ColumnDefinitions>
-                        <DynamicResource ResourceKey="ControlFontSize"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="90"/>
                     </Grid.ColumnDefinitions>
