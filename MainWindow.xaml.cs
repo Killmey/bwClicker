@@ -1,3 +1,4 @@
+// .NET 8 (net8.0-windows), C# 12, Nullable enabled, WPF + WinForms (UseWindowsForms=true)
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -128,7 +129,8 @@ namespace ClickerApp
         string rejoinHotDisplay = "L";
         string rejoinLeaveCmd = "/leave";
         string rejoinJoinCmd = "/rejoin";
-        int rejoinDelaySec = 3;
+        // stored in milliseconds; slider shows seconds, textbox shows ms
+        int rejoinDelayMs = 3000;
 
         // Live refs into the open "MODULES" popup (null when closed)
         ToggleButton? modAntiToggle;
@@ -137,6 +139,39 @@ namespace ClickerApp
         TextBlock? modRejoinSummary;
 
         ThemeConfig theme = new();
+
+        // ── Cached no-focus-border ControlTemplate for popup TextBoxes ──────────
+        static ControlTemplate? _noFocusBorderTemplate;
+        static ControlTemplate NoFocusBorderTemplate
+        {
+            get
+            {
+                if (_noFocusBorderTemplate != null) return _noFocusBorderTemplate;
+                _noFocusBorderTemplate = (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
+                    "<ControlTemplate " +
+                    "  xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' " +
+                    "  xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' " +
+                    "  TargetType='{x:Type TextBox}'>" +
+                    "<Border Background='{TemplateBinding Background}' " +
+                    "        BorderBrush='{TemplateBinding BorderBrush}' " +
+                    "        BorderThickness='{TemplateBinding BorderThickness}' " +
+                    "        CornerRadius='4'>" +
+                    "  <ScrollViewer x:Name='PART_ContentHost' " +
+                    "                Margin='{TemplateBinding Padding}' " +
+                    "                VerticalAlignment='{TemplateBinding VerticalContentAlignment}' " +
+                    "                HorizontalScrollBarVisibility='Hidden' " +
+                    "                VerticalScrollBarVisibility='Hidden'/>" +
+                    "</Border>" +
+                    "</ControlTemplate>");
+                return _noFocusBorderTemplate;
+            }
+        }
+
+        static void FixTextBoxFocus(TextBox box)
+        {
+            box.FocusVisualStyle = null;
+            box.Template = NoFocusBorderTemplate;
+        }
 
         public MainWindow()
         {
@@ -240,7 +275,10 @@ namespace ClickerApp
                 rejoinHotDisplay = string.IsNullOrWhiteSpace(rejoin.Display) ? KeyName(rejoinHotVk) : rejoin.Display;
                 rejoinLeaveCmd = string.IsNullOrWhiteSpace(rejoin.LeaveCommand) ? "/leave" : rejoin.LeaveCommand;
                 rejoinJoinCmd = string.IsNullOrWhiteSpace(rejoin.RejoinCommand) ? "/rejoin" : rejoin.RejoinCommand;
-                rejoinDelaySec = Clamp(rejoin.DelaySeconds, 0, 60);
+                // DelayMs takes priority; fall back to DelaySeconds * 1000 for backward compat
+                rejoinDelayMs = rejoin.DelayMs > 0
+                    ? Clamp(rejoin.DelayMs, 0, 60000)
+                    : Clamp(rejoin.DelaySeconds, 0, 60) * 1000;
             }
             catch { }
         }
@@ -278,7 +316,8 @@ namespace ClickerApp
                             Display = rejoinHotDisplay,
                             LeaveCommand = rejoinLeaveCmd,
                             RejoinCommand = rejoinJoinCmd,
-                            DelaySeconds = rejoinDelaySec
+                            DelayMs = rejoinDelayMs,
+                            DelaySeconds = rejoinDelayMs / 1000 // keep for compat
                         }
                     }
                 };
@@ -334,6 +373,7 @@ namespace ClickerApp
             SetRunMode(BtnHoldMode.IsChecked == true, save: false);
             RefreshModulesUi();
             UpdateMiniUi();
+            UpdateActiveModulesBadges();
             SetUi(running);
         }
 
@@ -453,8 +493,6 @@ namespace ClickerApp
             SendInput(2, inputs, Marshal.SizeOf<INPUT>());
         }
 
-        // Opens Minecraft chat ("T") and types the command followed by Enter.
-        // Relies on the default "Open Chat" keybind (T). Works for the foreground window.
         static void SendChatCommand(string command)
         {
             if (string.IsNullOrWhiteSpace(command)) return;
@@ -608,8 +646,6 @@ namespace ClickerApp
             if (msg == WmRButtonDown) physicalRightDown = true;
             if (msg == WmRButtonUp) physicalRightDown = false;
 
-            // LMB and RMB hold are independent: each only drives its own click,
-            // regardless of whether the other button is also enabled/held.
             SetHoldActive(physicalLeftDown, physicalRightDown);
         }
 
@@ -621,6 +657,7 @@ namespace ClickerApp
             Dispatcher.BeginInvoke(new Action(() => SetUi(running)));
         }
 
+        // ── Hover animations: minimal opacity-based (no brightening) ─────────────
         void AttachHoverAnimations(DependencyObject root)
         {
             var count = VisualTreeHelper.GetChildrenCount(root);
@@ -633,26 +670,22 @@ namespace ClickerApp
             }
         }
 
-        void AttachHoverAnimation(ButtonBase button)
+        static void AttachHoverAnimation(ButtonBase button)
         {
-            if (button.RenderTransform is not ScaleTransform)
-                button.RenderTransform = new ScaleTransform(1, 1);
-            button.RenderTransformOrigin = new Point(0.5, 0.5);
-
-            button.MouseEnter += (_, _) => AnimateScale(button, 1.018);
-            button.MouseLeave += (_, _) => AnimateScale(button, 1.0);
-            button.PreviewMouseDown += (_, _) => AnimateScale(button, 0.992);
-            button.PreviewMouseUp += (_, _) => AnimateScale(button, button.IsMouseOver ? 1.018 : 1.0);
+            button.MouseEnter += (_, _) => AnimateButtonHover(button, hover: true, pressed: false);
+            button.MouseLeave += (_, _) => AnimateButtonHover(button, hover: false, pressed: false);
+            button.PreviewMouseDown += (_, _) => AnimateButtonHover(button, hover: false, pressed: true);
+            button.PreviewMouseUp += (_, _) => AnimateButtonHover(button, hover: button.IsMouseOver, pressed: false);
         }
 
-        static void AnimateScale(UIElement element, double scale)
+        static void AnimateButtonHover(UIElement element, bool hover, bool pressed)
         {
-            var duration = TimeSpan.FromMilliseconds(95);
-            var easing = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var x = new DoubleAnimation(scale, duration) { EasingFunction = easing };
-            var y = new DoubleAnimation(scale, duration) { EasingFunction = easing };
-            element.RenderTransform.BeginAnimation(ScaleTransform.ScaleXProperty, x);
-            element.RenderTransform.BeginAnimation(ScaleTransform.ScaleYProperty, y);
+            double target = pressed ? 0.55 : hover ? 0.80 : 1.0;
+            var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(110))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            element.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
         void RegisterCurrentHotkey()
@@ -703,13 +736,13 @@ namespace ClickerApp
         {
             bool on;
             string leave, rejoin;
-            int delaySec;
+            int delayMs;
             lock (stateLock)
             {
                 on = modulesAutoRejoinOn;
                 leave = rejoinLeaveCmd;
                 rejoin = rejoinJoinCmd;
-                delaySec = rejoinDelaySec;
+                delayMs = rejoinDelayMs;
             }
 
             if (!on) return;
@@ -717,7 +750,7 @@ namespace ClickerApp
             new Thread(() =>
             {
                 SendChatCommand(leave);
-                Thread.Sleep(Math.Max(0, delaySec) * 1000);
+                Thread.Sleep(Math.Max(0, delayMs));
                 SendChatCommand(rejoin);
             })
             { IsBackground = true }.Start();
@@ -895,7 +928,7 @@ namespace ClickerApp
         string AntiSummaryText() => antiOn ? "Активна рандомізація" : "Вимкнено";
 
         string RejoinSummaryText() => modulesAutoRejoinOn
-            ? $"{RejoinHotkeyText()} · затримка {rejoinDelaySec}с"
+            ? $"{RejoinHotkeyText()} · {rejoinDelayMs} мс"
             : "Вимкнено";
 
         string RejoinHotkeyText()
@@ -930,6 +963,44 @@ namespace ClickerApp
             }
             if (modRejoinSummary != null)
                 modRejoinSummary.Text = RejoinSummaryText();
+
+            UpdateActiveModulesBadges();
+        }
+
+        // ── Active modules badges in main window header ───────────────────────────
+        void UpdateActiveModulesBadges()
+        {
+            if (ActiveModulesWrap == null) return;
+            ActiveModulesWrap.Children.Clear();
+
+            if (antiOn)
+                ActiveModulesWrap.Children.Add(MakeModuleBadge("ANTI-DETECT"));
+            if (modulesAutoRejoinOn)
+                ActiveModulesWrap.Children.Add(MakeModuleBadge("AUTO-REJOIN"));
+
+            ActiveModulesWrap.Visibility = ActiveModulesWrap.Children.Count > 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        Border MakeModuleBadge(string text)
+        {
+            var border = new Border
+            {
+                Background = LineBrush,
+                CornerRadius = new CornerRadius(5),
+                Padding = new Thickness(6, 3, 6, 3),
+                Margin = new Thickness(0, 0, 5, 3)
+            };
+            border.Child = new TextBlock
+            {
+                Text = text,
+                Foreground = AccentBrush,
+                FontFamily = new FontFamily("Consolas"),
+                FontSize = 9,
+                FontWeight = FontWeights.Bold
+            };
+            return border;
         }
 
         void UpdateMiniUi()
@@ -946,6 +1017,7 @@ namespace ClickerApp
             MiniHotkey.Foreground = MutedBrush;
         }
 
+        // ── Popup window factory ──────────────────────────────────────────────────
         Window CreatePopup(string title, double width)
         {
             var win = new Window
@@ -957,8 +1029,33 @@ namespace ClickerApp
                 ResizeMode = ResizeMode.NoResize,
                 AllowsTransparency = true,
                 Background = Brushes.Transparent,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                // Manual placement: to the left (or right) of main window, bottom-edge aligned
+                WindowStartupLocation = WindowStartupLocation.Manual,
+                Left = Left,  // temporary; corrected in Loaded
+                Top = Top,
                 ShowInTaskbar = false
+            };
+
+            // Position: to the LEFT of main window if space, else RIGHT.
+            // Bottom edges of both windows are aligned.
+            win.Loaded += (_, _) =>
+            {
+                const double gap = 6;
+                var screen = SystemParameters.WorkArea;
+                double popupW = win.ActualWidth;
+                double popupH = win.ActualHeight;
+
+                // Bottom-edge alignment
+                double newTop = Top + ActualHeight - popupH;
+                if (newTop < screen.Top) newTop = screen.Top;
+
+                // Try left side first
+                double newLeft = Left - popupW - gap;
+                if (newLeft < screen.Left)
+                    newLeft = Left + ActualWidth + gap; // fall back to right
+
+                win.Left = newLeft;
+                win.Top = newTop;
             };
 
             var border = new Border
@@ -987,17 +1084,15 @@ namespace ClickerApp
                 VerticalAlignment = VerticalAlignment.Center
             });
 
+            // Close button: uses ChromeButton style – no background fill on hover
             var close = new Button
             {
                 Tag = "ChromeButton",
                 Content = "x",
                 Width = 30,
                 Height = 30,
-                Background = Brushes.Transparent,
+                Style = (Style)FindResource("ChromeButton"),
                 Foreground = MutedBrush,
-                BorderThickness = new Thickness(0),
-                FontFamily = new FontFamily("Consolas"),
-                FontWeight = FontWeights.Bold,
                 Cursor = Cursors.Hand
             };
             AttachHoverAnimation(close);
@@ -1088,7 +1183,8 @@ namespace ClickerApp
 
             AddDivider(root);
 
-            AddModuleRow(root, "Авто-перезахід", RejoinSummaryText(), modulesAutoRejoinOn,
+            // Renamed: "Авто-перезахід" → "auto-rejoin"
+            AddModuleRow(root, "auto-rejoin", RejoinSummaryText(), modulesAutoRejoinOn,
                 SetAutoRejoinOn, OpenAutoRejoinSettings,
                 (toggle, summary) => { modRejoinToggle = toggle; modRejoinSummary = summary; });
 
@@ -1186,7 +1282,8 @@ namespace ClickerApp
 
         void OpenAutoRejoinSettings()
         {
-            var win = CreatePopup("АВТО-ПЕРЕЗАХІД", 430);
+            // Window title renamed to AUTO-REJOIN
+            var win = CreatePopup("AUTO-REJOIN", 430);
             var root = PopupRoot(win);
 
             root.Children.Add(new TextBlock
@@ -1250,9 +1347,12 @@ namespace ClickerApp
 
             AddDivider(root);
 
-            AddSliderRow(root, "Затримка перед поверненням", "Час очікування у лобі перед командою повернення",
-                0, 30, rejoinDelaySec, "с",
-                value => { rejoinDelaySec = value; RefreshModulesUi(); SaveConfig(); });
+            // Slider in seconds (0-60), textbox in milliseconds (0-60000)
+            AddSliderMsRow(root,
+                "Затримка перед поверненням",
+                "Слайдер: секунди · Поле: мілісекунди",
+                0, 60000, rejoinDelayMs,
+                value => { rejoinDelayMs = value; RefreshModulesUi(); SaveConfig(); });
 
             win.ShowDialog();
         }
@@ -1285,6 +1385,7 @@ namespace ClickerApp
                 Padding = new Thickness(10, 0, 10, 0),
                 VerticalContentAlignment = VerticalAlignment.Center
             };
+            FixTextBoxFocus(box);
             box.LostFocus += (_, _) =>
                 apply(string.IsNullOrWhiteSpace(box.Text) ? value : box.Text.Trim());
             box.KeyDown += (_, e) =>
@@ -1533,12 +1634,15 @@ namespace ClickerApp
                 Background = SurfaceBrush,
                 Foreground = AccentBrush,
                 BorderBrush = LineBrush,
+                BorderThickness = new Thickness(1),
                 CaretBrush = Brushes.Transparent,
                 FontFamily = new FontFamily("Consolas"),
                 FontWeight = FontWeights.Bold,
                 TextAlignment = TextAlignment.Right,
-                VerticalContentAlignment = VerticalAlignment.Center
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(4, 0, 4, 0)
             };
+            FixTextBoxFocus(box);
             Grid.SetColumn(box, 1);
             row.Children.Add(box);
 
@@ -1573,6 +1677,116 @@ namespace ClickerApp
             {
                 if (int.TryParse(box.Text, out var parsed)) Commit(parsed);
                 else Commit((int)Math.Round(slider.Value));
+            };
+            box.KeyDown += (_, e) =>
+            {
+                if (e.Key != Key.Enter) return;
+                e.Handled = true;
+                Keyboard.ClearFocus();
+            };
+
+            wrap.Children.Add(row);
+            root.Children.Add(wrap);
+        }
+
+        /// <summary>
+        /// Slider shows seconds (0..maxMs/1000), TextBox shows/accepts milliseconds (0..maxMs).
+        /// Useful for timing fields where coarse adjustment via slider is enough but precise ms input is needed.
+        /// </summary>
+        void AddSliderMsRow(Panel root, string title, string subtitle,
+            int minMs, int maxMs, int valueMs, Action<int> apply)
+        {
+            var wrap = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
+            wrap.Children.Add(new TextBlock
+            {
+                Tag = "Text",
+                Text = title,
+                Foreground = TextBrush,
+                FontSize = fontSize,
+                FontWeight = FontWeights.Bold
+            });
+            wrap.Children.Add(new TextBlock
+            {
+                Tag = "Muted",
+                Text = subtitle,
+                Foreground = MutedBrush,
+                FontSize = Math.Max(9, fontSize - 2),
+                Margin = new Thickness(0, 2, 0, 7)
+            });
+
+            int maxSec = maxMs / 1000;
+
+            var row = new Grid();
+            row.ColumnDefinitions.Add(new ColumnDefinition());
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var slider = new Slider
+            {
+                Minimum = 0,
+                Maximum = maxSec,
+                Value = valueMs / 1000.0,
+                IsSnapToTickEnabled = true,
+                TickFrequency = 1,
+                Margin = new Thickness(0, 0, 10, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            row.Children.Add(slider);
+
+            var box = new TextBox
+            {
+                Tag = "Input",
+                Text = valueMs.ToString(Invariant),
+                Width = 66,
+                Height = 28,
+                Background = SurfaceBrush,
+                Foreground = AccentBrush,
+                BorderBrush = LineBrush,
+                BorderThickness = new Thickness(1),
+                CaretBrush = Brushes.Transparent,
+                FontFamily = new FontFamily("Consolas"),
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Right,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(4, 0, 4, 0)
+            };
+            FixTextBoxFocus(box);
+            Grid.SetColumn(box, 1);
+            row.Children.Add(box);
+
+            var unit = new TextBlock
+            {
+                Tag = "Muted",
+                Text = "мс",
+                Foreground = MutedBrush,
+                Margin = new Thickness(6, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(unit, 2);
+            row.Children.Add(unit);
+
+            bool syncing = false;
+            void Commit(int nextMs)
+            {
+                nextMs = Clamp(nextMs, minMs, maxMs);
+                syncing = true;
+                slider.Value = nextMs / 1000.0;
+                box.Text = nextMs.ToString(Invariant);
+                syncing = false;
+                apply(nextMs);
+            }
+
+            // Slider moves in 1-second steps → convert to ms
+            slider.ValueChanged += (_, _) =>
+            {
+                if (syncing) return;
+                Commit((int)Math.Round(slider.Value) * 1000);
+            };
+            // TextBox accepts raw ms → precise input
+            box.LostFocus += (_, _) =>
+            {
+                if (int.TryParse(box.Text, out var parsed)) Commit(parsed);
+                else Commit((int)(slider.Value * 1000));
             };
             box.KeyDown += (_, e) =>
             {
@@ -1699,6 +1913,9 @@ namespace ClickerApp
             public string Display { get; set; } = "L";
             public string LeaveCommand { get; set; } = "/leave";
             public string RejoinCommand { get; set; } = "/rejoin";
+            /// <summary>Delay in milliseconds (preferred). Overrides DelaySeconds.</summary>
+            public int DelayMs { get; set; } = 3000;
+            /// <summary>Legacy: delay in seconds. Used only when DelayMs == 0.</summary>
             public int DelaySeconds { get; set; } = 3;
         }
 
