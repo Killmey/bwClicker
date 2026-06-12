@@ -129,10 +129,9 @@ namespace ClickerApp
         string rejoinHotDisplay = "L";
         string rejoinLeaveCmd = "/leave";
         string rejoinJoinCmd = "/rejoin";
-        // stored in milliseconds; slider shows seconds, textbox shows ms
-        int rejoinDelayMs = 3000;
+        int rejoinDelayMs = 3000; // Зберігаємо в мс
 
-        // Live refs into the open "MODULES" popup (null when closed)
+        // Елементи динамічного інтерфейсу модулів
         ToggleButton? modAntiToggle;
         TextBlock? modAntiSummary;
         ToggleButton? modRejoinToggle;
@@ -140,7 +139,6 @@ namespace ClickerApp
 
         ThemeConfig theme = new();
 
-        // ── Cached no-focus-border ControlTemplate for popup TextBoxes ──────────
         static ControlTemplate? _noFocusBorderTemplate;
         static ControlTemplate NoFocusBorderTemplate
         {
@@ -275,7 +273,7 @@ namespace ClickerApp
                 rejoinHotDisplay = string.IsNullOrWhiteSpace(rejoin.Display) ? KeyName(rejoinHotVk) : rejoin.Display;
                 rejoinLeaveCmd = string.IsNullOrWhiteSpace(rejoin.LeaveCommand) ? "/leave" : rejoin.LeaveCommand;
                 rejoinJoinCmd = string.IsNullOrWhiteSpace(rejoin.RejoinCommand) ? "/rejoin" : rejoin.RejoinCommand;
-                // DelayMs takes priority; fall back to DelaySeconds * 1000 for backward compat
+                
                 rejoinDelayMs = rejoin.DelayMs > 0
                     ? Clamp(rejoin.DelayMs, 0, 60000)
                     : Clamp(rejoin.DelaySeconds, 0, 60) * 1000;
@@ -317,7 +315,7 @@ namespace ClickerApp
                             LeaveCommand = rejoinLeaveCmd,
                             RejoinCommand = rejoinJoinCmd,
                             DelayMs = rejoinDelayMs,
-                            DelaySeconds = rejoinDelayMs / 1000 // keep for compat
+                            DelaySeconds = rejoinDelayMs / 1000
                         }
                     }
                 };
@@ -657,7 +655,6 @@ namespace ClickerApp
             Dispatcher.BeginInvoke(new Action(() => SetUi(running)));
         }
 
-        // ── Hover animations: minimal opacity-based (no brightening) ─────────────
         void AttachHoverAnimations(DependencyObject root)
         {
             var count = VisualTreeHelper.GetChildrenCount(root);
@@ -732,6 +729,7 @@ namespace ClickerApp
             }
         }
 
+        // Фікс: Працює ТІЛЬКИ коли клікер активний (running == true)
         void TriggerAutoRejoin()
         {
             bool on;
@@ -745,7 +743,7 @@ namespace ClickerApp
                 delayMs = rejoinDelayMs;
             }
 
-            if (!on) return;
+            if (!on || !running) return;
 
             new Thread(() =>
             {
@@ -820,9 +818,8 @@ namespace ClickerApp
         }
 
         static bool IsModifierOnly(Key key) =>
-            key is Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift
-                or Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin
-                or Key.System;
+            key is Key.LeftCtrl or Key.RightCtrl or Key.LeftShift or Key.RightShift or
+                   Key.LeftAlt or Key.RightAlt or Key.LWin or Key.RWin or Key.System;
 
         string HotkeyText()
         {
@@ -833,8 +830,7 @@ namespace ClickerApp
             return text + hotDisplay;
         }
 
-        static string KeyName(uint vk) =>
-            KeyToDisplay(KeyInterop.KeyFromVirtualKey((int)vk), vk);
+        static string KeyName(uint vk) => KeyToDisplay(KeyInterop.KeyFromVirtualKey((int)vk), vk);
 
         static string KeyToDisplay(Key key, uint vk)
         {
@@ -860,15 +856,12 @@ namespace ClickerApp
         void SetMouseButtons(bool left, bool right, bool save = true)
         {
             if (!left && !right) right = true;
-
             BtnLmb.IsChecked = left;
             BtnRmb.IsChecked = right;
-
             BtnLmb.Background = left ? AccentBrush : SurfaceBrush;
             BtnLmb.Foreground = left ? BgBrush : MutedBrush;
             BtnRmb.Background = right ? AccentBrush : SurfaceBrush;
             BtnRmb.Foreground = right ? BgBrush : MutedBrush;
-
             lock (stateLock)
             {
                 clickLeft = left;
@@ -887,9 +880,9 @@ namespace ClickerApp
             BtnHoldMode.IsChecked = hold;
             BtnStayMode.Foreground = !hold ? AccentBrush : MutedBrush;
             BtnHoldMode.Foreground = hold ? AccentBrush : MutedBrush;
-
             RunModeShell.Background = LineBrush;
             RunModeThumb.Background = SurfaceBrush;
+
             if (RunModeThumb.RenderTransform is TranslateTransform translate)
             {
                 var target = hold ? 54.0 : 0.0;
@@ -926,10 +919,7 @@ namespace ClickerApp
         }
 
         string AntiSummaryText() => antiOn ? "Активна рандомізація" : "Вимкнено";
-
-        string RejoinSummaryText() => modulesAutoRejoinOn
-            ? $"{RejoinHotkeyText()} · {rejoinDelayMs} мс"
-            : "Вимкнено";
+        string RejoinSummaryText() => modulesAutoRejoinOn ? $"{RejoinHotkeyText()} · {rejoinDelayMs} мс" : "Вимкнено";
 
         string RejoinHotkeyText()
         {
@@ -950,8 +940,7 @@ namespace ClickerApp
                 modAntiToggle.Background = on ? AccentBrush : LineBrush;
                 modAntiToggle.Foreground = on ? BgBrush : MutedBrush;
             }
-            if (modAntiSummary != null)
-                modAntiSummary.Text = AntiSummaryText();
+            if (modAntiSummary != null) modAntiSummary.Text = AntiSummaryText();
 
             if (modRejoinToggle != null)
             {
@@ -961,26 +950,20 @@ namespace ClickerApp
                 modRejoinToggle.Background = on ? AccentBrush : LineBrush;
                 modRejoinToggle.Foreground = on ? BgBrush : MutedBrush;
             }
-            if (modRejoinSummary != null)
-                modRejoinSummary.Text = RejoinSummaryText();
+            if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
 
             UpdateActiveModulesBadges();
         }
 
-        // ── Active modules badges in main window header ───────────────────────────
         void UpdateActiveModulesBadges()
         {
             if (ActiveModulesWrap == null) return;
             ActiveModulesWrap.Children.Clear();
 
-            if (antiOn)
-                ActiveModulesWrap.Children.Add(MakeModuleBadge("ANTI-DETECT"));
-            if (modulesAutoRejoinOn)
-                ActiveModulesWrap.Children.Add(MakeModuleBadge("AUTO-REJOIN"));
+            if (antiOn) ActiveModulesWrap.Children.Add(MakeModuleBadge("ANTI-DETECT"));
+            if (modulesAutoRejoinOn) ActiveModulesWrap.Children.Add(MakeModuleBadge("AUTO-REJOIN"));
 
-            ActiveModulesWrap.Visibility = ActiveModulesWrap.Children.Count > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            ActiveModulesWrap.Visibility = ActiveModulesWrap.Children.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         Border MakeModuleBadge(string text)
@@ -1006,874 +989,90 @@ namespace ClickerApp
         void UpdateMiniUi()
         {
             if (MiniMode == null || MiniCps == null || MiniHotkey == null) return;
-
             var left = BtnLmb?.IsChecked == true;
             var right = BtnRmb?.IsChecked == true;
             MiniMode.Text = left && right ? "ЛКМ+ПКМ" : left ? "ЛКМ" : "ПКМ";
             MiniCps.Text = $"{Math.Max(1, cps)} CPS";
             MiniHotkey.Text = HotkeyText();
-            MiniMode.Foreground = AccentBrush;
-            MiniCps.Foreground = TextBrush;
-            MiniHotkey.Foreground = MutedBrush;
+            MiniMode.Foreground = running ? AccentBrush : MutedBrush;
         }
 
-        // ── Popup window factory ──────────────────────────────────────────────────
-        Window CreatePopup(string title, double width)
-        {
-            var win = new Window
-            {
-                Owner = this,
-                Width = width,
-                SizeToContent = SizeToContent.Height,
-                WindowStyle = WindowStyle.None,
-                ResizeMode = ResizeMode.NoResize,
-                AllowsTransparency = true,
-                Background = Brushes.Transparent,
-                // Manual placement: to the left (or right) of main window, bottom-edge aligned
-                WindowStartupLocation = WindowStartupLocation.Manual,
-                Left = Left,  // temporary; corrected in Loaded
-                Top = Top,
-                ShowInTaskbar = false
-            };
+        static int Clamp(int val, int min, int max) => val < min ? min : (val > max ? max : val);
 
-            // Position: to the LEFT of main window if space, else RIGHT.
-            // Bottom edges of both windows are aligned.
-            win.Loaded += (_, _) =>
-            {
-                const double gap = 6;
-                var screen = SystemParameters.WorkArea;
-                double popupW = win.ActualWidth;
-                double popupH = win.ActualHeight;
-
-                // Bottom-edge alignment
-                double newTop = Top + ActualHeight - popupH;
-                if (newTop < screen.Top) newTop = screen.Top;
-
-                // Try left side first
-                double newLeft = Left - popupW - gap;
-                if (newLeft < screen.Left)
-                    newLeft = Left + ActualWidth + gap; // fall back to right
-
-                win.Left = newLeft;
-                win.Top = newTop;
-            };
-
-            var border = new Border
-            {
-                Tag = "PopupRoot",
-                Background = BgBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(16),
-                Padding = new Thickness(18)
-            };
-
-            var root = new StackPanel();
-            var header = new Grid { Margin = new Thickness(0, 0, 0, 14) };
-            header.ColumnDefinitions.Add(new ColumnDefinition());
-            header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            header.Children.Add(new TextBlock
-            {
-                Tag = "AccentText",
-                Text = title,
-                Foreground = AccentBrush,
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = fontSize + 7,
-                FontWeight = FontWeights.Bold,
-                VerticalAlignment = VerticalAlignment.Center
-            });
-
-            // Close button: uses ChromeButton style – no background fill on hover
-            var close = new Button
-            {
-                Tag = "ChromeButton",
-                Content = "x",
-                Width = 30,
-                Height = 30,
-                Style = (Style)FindResource("ChromeButton"),
-                Foreground = MutedBrush,
-                Cursor = Cursors.Hand
-            };
-            AttachHoverAnimation(close);
-            close.Click += (_, _) => win.Close();
-            Grid.SetColumn(close, 1);
-            header.Children.Add(close);
-
-            root.Children.Add(header);
-            border.Child = root;
-            win.Content = border;
-            win.MouseLeftButtonDown += (_, e) =>
-            {
-                if (e.OriginalSource is DependencyObject source &&
-                    (IsInside<TextBox>(source) || IsInside<ButtonBase>(source) || IsInside<Slider>(source)))
-                    return;
-                try { win.DragMove(); } catch { }
-            };
-            return win;
-        }
-
-        void RefreshPopupTheme(DependencyObject? root)
-        {
-            if (root == null) return;
-
-            if (root is FrameworkElement element && element.Tag is string tag)
-            {
-                switch (tag)
-                {
-                    case "PopupRoot" when root is Border popup:
-                        popup.Background = BgBrush;
-                        popup.BorderBrush = LineBrush;
-                        break;
-                    case "Surface" when root is Border surface:
-                        surface.Background = SurfaceBrush;
-                        surface.BorderBrush = LineBrush;
-                        break;
-                    case "AccentText" when root is TextBlock accent:
-                        accent.Foreground = AccentBrush;
-                        accent.FontSize = fontSize + 7;
-                        break;
-                    case "Text" when root is TextBlock text:
-                        text.Foreground = TextBrush;
-                        text.FontSize = fontSize;
-                        break;
-                    case "Muted" when root is TextBlock muted:
-                        muted.Foreground = MutedBrush;
-                        muted.FontSize = Math.Max(9, fontSize - 2);
-                        break;
-                    case "Line" when root is Border line:
-                        line.Background = LineBrush;
-                        break;
-                    case "Input" when root is TextBox input:
-                        input.Background = SurfaceBrush;
-                        input.Foreground = AccentBrush;
-                        input.BorderBrush = LineBrush;
-                        input.CaretBrush = Brushes.Transparent;
-                        break;
-                    case "ChromeButton" when root is Button chrome:
-                        chrome.Foreground = MutedBrush;
-                        break;
-                    case "DialogPrimary" when root is Button primary:
-                        primary.Background = SurfaceBrush;
-                        primary.Foreground = TextBrush;
-                        break;
-                    case "DialogSecondary" when root is Button secondary:
-                        secondary.Background = LineBrush;
-                        secondary.Foreground = MutedBrush;
-                        break;
-                }
-            }
-
-            var count = VisualTreeHelper.GetChildrenCount(root);
-            for (var i = 0; i < count; i++)
-                RefreshPopupTheme(VisualTreeHelper.GetChild(root, i));
-        }
-
-        StackPanel PopupRoot(Window win) =>
-            (StackPanel)((Border)win.Content).Child;
-
-        void OpenModulesSettings()
-        {
-            var win = CreatePopup("МОДУЛІ", 430);
-            var root = PopupRoot(win);
-
-            AddModuleRow(root, "Рандомізація кліків", AntiSummaryText(), antiOn,
-                SetAntiOn, OpenAntiDetectSettings,
-                (toggle, summary) => { modAntiToggle = toggle; modAntiSummary = summary; });
-
-            AddDivider(root);
-
-            // Renamed: "Авто-перезахід" → "auto-rejoin"
-            AddModuleRow(root, "auto-rejoin", RejoinSummaryText(), modulesAutoRejoinOn,
-                SetAutoRejoinOn, OpenAutoRejoinSettings,
-                (toggle, summary) => { modRejoinToggle = toggle; modRejoinSummary = summary; });
-
-            win.Closed += (_, _) =>
-            {
-                modAntiToggle = null;
-                modAntiSummary = null;
-                modRejoinToggle = null;
-                modRejoinSummary = null;
-            };
-
-            win.ShowDialog();
-        }
-
-        void AddModuleRow(Panel root, string title, string summary, bool on,
-            Action<bool> onToggle, Action onSettings, Action<ToggleButton, TextBlock> bind)
-        {
-            var border = new Border
-            {
-                Tag = "Surface",
-                Background = SurfaceBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(14),
-                Margin = new Thickness(0, 0, 0, 10)
-            };
-
-            var grid = new Grid();
-            grid.ColumnDefinitions.Add(new ColumnDefinition());
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(94) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(46) });
-
-            var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            stack.Children.Add(new TextBlock
-            {
-                Tag = "Text",
-                Text = title,
-                Foreground = TextBrush,
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold
-            });
-
-            var summaryBlock = new TextBlock
-            {
-                Tag = "Muted",
-                Text = summary,
-                Foreground = MutedBrush,
-                FontSize = 11,
-                Margin = new Thickness(0, 3, 0, 0)
-            };
-            stack.Children.Add(summaryBlock);
-            grid.Children.Add(stack);
-
-            var toggle = new ToggleButton
-            {
-                Style = (Style)FindResource("SegmentButton"),
-                IsChecked = on,
-                Content = on ? "ВКЛ" : "ВИКЛ",
-                Background = on ? AccentBrush : LineBrush,
-                Foreground = on ? BgBrush : MutedBrush,
-                Margin = new Thickness(8, 0, 0, 0)
-            };
-            Grid.SetColumn(toggle, 1);
-            AttachHoverAnimation(toggle);
-            toggle.Click += (_, _) =>
-            {
-                var state = toggle.IsChecked == true;
-                toggle.Content = state ? "ВКЛ" : "ВИКЛ";
-                toggle.Background = state ? AccentBrush : LineBrush;
-                toggle.Foreground = state ? BgBrush : MutedBrush;
-                onToggle(state);
-            };
-            grid.Children.Add(toggle);
-
-            var gear = new Button
-            {
-                Style = (Style)FindResource("FlatButton"),
-                Content = "⚙",
-                Background = LineBrush,
-                Foreground = TextBrush,
-                FontSize = 16,
-                Margin = new Thickness(8, 0, 0, 0)
-            };
-            Grid.SetColumn(gear, 2);
-            AttachHoverAnimation(gear);
-            gear.Click += (_, _) => onSettings();
-            grid.Children.Add(gear);
-
-            border.Child = grid;
-            root.Children.Add(border);
-
-            bind(toggle, summaryBlock);
-        }
-
-        void OpenAutoRejoinSettings()
-        {
-            // Window title renamed to AUTO-REJOIN
-            var win = CreatePopup("AUTO-REJOIN", 430);
-            var root = PopupRoot(win);
-
-            root.Children.Add(new TextBlock
-            {
-                Tag = "Muted",
-                Text = "При натисканні гарячої клавіші відправляє команду виходу, " +
-                       "чекає вказаний час і відправляє команду повернення.",
-                Foreground = MutedBrush,
-                FontSize = Math.Max(9, fontSize - 2),
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 0, 0, 14)
-            });
-
-            var bindRow = new Grid { Margin = new Thickness(0, 0, 0, 14) };
-            bindRow.ColumnDefinitions.Add(new ColumnDefinition());
-            bindRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(108) });
-
-            var bindBox = new Border
-            {
-                Tag = "Surface",
-                Background = SurfaceBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(9),
-                Height = 42,
-                Padding = new Thickness(13, 0, 13, 0)
-            };
-            var bindText = new TextBlock
-            {
-                Tag = "AccentText",
-                Text = RejoinHotkeyText(),
-                Foreground = AccentBrush,
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            bindBox.Child = bindText;
-            bindRow.Children.Add(bindBox);
-
-            var recordBtn = new Button
-            {
-                Style = (Style)FindResource("FlatButton"),
-                Content = "ЗАПИС",
-                Background = LineBrush,
-                Foreground = TextBrush,
-                Margin = new Thickness(8, 0, 0, 0)
-            };
-            Grid.SetColumn(recordBtn, 1);
-            AttachHoverAnimation(recordBtn);
-            recordBtn.Click += (_, _) => StartRejoinHotkeyCapture(win, recordBtn, bindText);
-            bindRow.Children.Add(recordBtn);
-            root.Children.Add(bindRow);
-
-            AddDivider(root);
-
-            AddTextRow(root, "Команда виходу в лобі", rejoinLeaveCmd,
-                v => { rejoinLeaveCmd = v; RefreshModulesUi(); SaveConfig(); });
-            AddTextRow(root, "Команда повернення", rejoinJoinCmd,
-                v => { rejoinJoinCmd = v; RefreshModulesUi(); SaveConfig(); });
-
-            AddDivider(root);
-
-            // Slider in seconds (0-60), textbox in milliseconds (0-60000)
-            AddSliderMsRow(root,
-                "Затримка перед поверненням",
-                "Слайдер: секунди · Поле: мілісекунди",
-                0, 60000, rejoinDelayMs,
-                value => { rejoinDelayMs = value; RefreshModulesUi(); SaveConfig(); });
-
-            win.ShowDialog();
-        }
-
-        void AddTextRow(Panel root, string title, string value, Action<string> apply)
-        {
-            var wrap = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
-            wrap.Children.Add(new TextBlock
-            {
-                Tag = "Text",
-                Text = title,
-                Foreground = TextBrush,
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold,
-                Margin = new Thickness(0, 0, 0, 7)
-            });
-
-            var box = new TextBox
-            {
-                Tag = "Input",
-                Text = value,
-                Height = 38,
-                Background = SurfaceBrush,
-                Foreground = AccentBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CaretBrush = AccentBrush,
-                FontFamily = new FontFamily("Consolas"),
-                FontWeight = FontWeights.Bold,
-                Padding = new Thickness(10, 0, 10, 0),
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
-            FixTextBoxFocus(box);
-            box.LostFocus += (_, _) =>
-                apply(string.IsNullOrWhiteSpace(box.Text) ? value : box.Text.Trim());
-            box.KeyDown += (_, e) =>
-            {
-                if (e.Key != Key.Enter) return;
-                e.Handled = true;
-                Keyboard.ClearFocus();
-            };
-
-            wrap.Children.Add(box);
-            root.Children.Add(wrap);
-        }
-
-        void StartRejoinHotkeyCapture(Window owner, Button recordButton, TextBlock display)
-        {
-            recordButton.Content = "СКАСУВАТИ";
-            recordButton.Background = DangerBrush;
-            recordButton.Foreground = BgBrush;
-            display.Text = "Натисни комбінацію...";
-            display.Foreground = DangerBrush;
-
-            void Finish()
-            {
-                owner.PreviewKeyDown -= Handler;
-                recordButton.Content = "ЗАПИС";
-                recordButton.Background = LineBrush;
-                recordButton.Foreground = TextBrush;
-            }
-
-            void Handler(object sender, KeyEventArgs e)
-            {
-                e.Handled = true;
-                var key = e.Key == Key.System ? e.SystemKey : e.Key;
-
-                if (key == Key.Escape)
-                {
-                    Finish();
-                    display.Text = RejoinHotkeyText();
-                    display.Foreground = AccentBrush;
-                    return;
-                }
-
-                if (IsModifierOnly(key)) return;
-
-                var vk = (uint)KeyInterop.VirtualKeyFromKey(key);
-                if (vk == 0) return;
-
-                uint mods = 0;
-                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) mods |= ModCtrl;
-                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) mods |= ModShift;
-                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) mods |= ModAlt;
-
-                rejoinHotMod = mods;
-                rejoinHotVk = vk;
-                rejoinHotDisplay = KeyToDisplay(key, vk);
-
-                Finish();
-                display.Text = RejoinHotkeyText();
-                display.Foreground = AccentBrush;
-
-                RegisterRejoinHotkey();
-                RefreshModulesUi();
-                SaveConfig();
-            }
-
-            owner.PreviewKeyDown += Handler;
-            owner.Focus();
-            Keyboard.Focus(recordButton);
-        }
-
-        void OpenAntiDetectSettings()
-        {
-            var win = CreatePopup("ANTI-DETECT", 430);
-            var root = PopupRoot(win);
-
-            AddSliderRow(root, "Розкид інтервалу", "Випадкове відхилення від базового CPS", 0, 50, jitter, "%",
-                value => { lock (stateLock) jitter = value; this.jitter = value; RefreshModulesUi(); SaveConfig(); });
-            AddDivider(root);
-            AddSliderRow(root, "Шанс мікропаузи", "Ймовірність паузи між кліками", 0, 30, burstChance, "%",
-                value => { lock (stateLock) burstChance = value; this.burstChance = value; RefreshModulesUi(); SaveConfig(); });
-            AddSliderRow(root, "Тривалість мікропаузи", "Окремий параметр, який загубився у C# версії", 50, 500, burstMs, "мс",
-                value => { lock (stateLock) burstMs = value; this.burstMs = value; RefreshModulesUi(); SaveConfig(); });
-            AddDivider(root);
-            AddSliderRow(root, "Розкид утримання", "Випадковий hold-time перед відпусканням кнопки", 0, 40, holdMs, "мс",
-                value => { lock (stateLock) holdMs = value; this.holdMs = value; RefreshModulesUi(); SaveConfig(); });
-
-            win.ShowDialog();
-        }
-
-        void OpenAppearanceSettings()
-        {
-            var win = CreatePopup("ВИГЛЯД", 410);
-            var root = PopupRoot(win);
-
-            AddColorRow(root, "Фон", theme.Background, v => theme.Background = v);
-            AddColorRow(root, "Панелі", theme.Surface, v => theme.Surface = v);
-            AddColorRow(root, "Акцент", theme.Accent, v => theme.Accent = v);
-            AddColorRow(root, "Стоп / попередження", theme.Danger, v => theme.Danger = v);
-            AddColorRow(root, "Текст", theme.Text, v => theme.Text = v);
-            AddColorRow(root, "Приглушений", theme.Muted, v => theme.Muted = v);
-            AddColorRow(root, "Лінії", theme.Line, v => theme.Line = v);
-
-            AddDivider(root);
-            AddSliderRow(root, "Розмір шрифту", "Застосовується одразу до елементів керування", 11, 18, fontSize, "",
-                value => { fontSize = value; ApplyTheme(); RefreshPopupTheme(win); SaveConfig(); });
-
-            var buttons = new Grid { Margin = new Thickness(0, 12, 0, 0) };
-            buttons.ColumnDefinitions.Add(new ColumnDefinition());
-            buttons.ColumnDefinitions.Add(new ColumnDefinition());
-
-            var reset = DialogButton("СКИНУТИ", LineBrush, MutedBrush);
-            reset.Click += (_, _) =>
-            {
-                theme = new ThemeConfig();
-                fontSize = 14;
-                ApplyTheme();
-                RefreshPopupTheme(win);
-                SaveConfig();
-                win.Close();
-            };
-            reset.Tag = "DialogSecondary";
-            buttons.Children.Add(reset);
-
-            var close = DialogButton("ГОТОВО", SurfaceBrush, TextBrush);
-            close.Click += (_, _) => win.Close();
-            close.Tag = "DialogPrimary";
-            Grid.SetColumn(close, 1);
-            close.Margin = new Thickness(8, 0, 0, 0);
-            buttons.Children.Add(close);
-            root.Children.Add(buttons);
-
-            win.ShowDialog();
-        }
-
-        Button DialogButton(string text, Brush bg, Brush fg)
-        {
-            var button = new Button
-            {
-                Content = text,
-                Height = 40,
-                Background = bg,
-                Foreground = fg,
-                BorderThickness = new Thickness(0),
-                FontFamily = new FontFamily("Consolas"),
-                FontWeight = FontWeights.Bold,
-                Cursor = Cursors.Hand
-            };
-            AttachHoverAnimation(button);
-            return button;
-        }
-
-        void AddDivider(Panel root) =>
-            root.Children.Add(new Border { Tag = "Line", Height = 1, Background = LineBrush, Margin = new Thickness(0, 10, 0, 10) });
-
-        void AddColorRow(Panel root, string label, string color, Action<string> apply)
-        {
-            var current = color;
-            var row = new Grid { Margin = new Thickness(0, 0, 0, 8) };
-            row.ColumnDefinitions.Add(new ColumnDefinition());
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            row.Children.Add(new TextBlock
-            {
-                Tag = "Text",
-                Text = label,
-                Foreground = TextBrush,
-                FontSize = fontSize,
-                VerticalAlignment = VerticalAlignment.Center
-            });
-
-            var swatch = new Button
-            {
-                Width = 58,
-                Height = 28,
-                Background = BrushOf(color),
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                Cursor = Cursors.Hand
-            };
-            AttachHoverAnimation(swatch);
-
-            swatch.Click += (_, _) =>
-            {
-                using var dlg = new Forms.ColorDialog
-                {
-                    Color = System.Drawing.ColorTranslator.FromHtml(current),
-                    FullOpen = true
-                };
-                if (dlg.ShowDialog() != Forms.DialogResult.OK) return;
-                var next = $"#{dlg.Color.R:X2}{dlg.Color.G:X2}{dlg.Color.B:X2}";
-                current = next;
-                apply(next);
-                swatch.Background = BrushOf(next);
-                ApplyTheme();
-                RefreshPopupTheme(Window.GetWindow(swatch));
-                SaveConfig();
-            };
-
-            Grid.SetColumn(swatch, 1);
-            row.Children.Add(swatch);
-            root.Children.Add(row);
-        }
-
-        void AddSliderRow(Panel root, string title, string subtitle, int min, int max, int value, string suffix, Action<int> apply)
-        {
-            var wrap = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
-            wrap.Children.Add(new TextBlock
-            {
-                Tag = "Text",
-                Text = title,
-                Foreground = TextBrush,
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold
-            });
-            wrap.Children.Add(new TextBlock
-            {
-                Tag = "Muted",
-                Text = subtitle,
-                Foreground = MutedBrush,
-                FontSize = Math.Max(9, fontSize - 2),
-                Margin = new Thickness(0, 2, 0, 7)
-            });
-
-            var row = new Grid();
-            row.ColumnDefinitions.Add(new ColumnDefinition());
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            var slider = new Slider
-            {
-                Minimum = min,
-                Maximum = max,
-                Value = value,
-                IsSnapToTickEnabled = true,
-                TickFrequency = 1,
-                Margin = new Thickness(0, 0, 10, 0),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            row.Children.Add(slider);
-
-            var box = new TextBox
-            {
-                Tag = "Input",
-                Text = value.ToString(Invariant),
-                Width = 58,
-                Height = 28,
-                Background = SurfaceBrush,
-                Foreground = AccentBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CaretBrush = Brushes.Transparent,
-                FontFamily = new FontFamily("Consolas"),
-                FontWeight = FontWeights.Bold,
-                TextAlignment = TextAlignment.Right,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                Padding = new Thickness(4, 0, 4, 0)
-            };
-            FixTextBoxFocus(box);
-            Grid.SetColumn(box, 1);
-            row.Children.Add(box);
-
-            var unit = new TextBlock
-            {
-                Tag = "Muted",
-                Text = suffix,
-                Foreground = MutedBrush,
-                Margin = new Thickness(6, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            Grid.SetColumn(unit, 2);
-            row.Children.Add(unit);
-
-            bool syncing = false;
-            void Commit(int next)
-            {
-                next = Clamp(next, min, max);
-                syncing = true;
-                slider.Value = next;
-                box.Text = next.ToString(Invariant);
-                syncing = false;
-                apply(next);
-            }
-
-            slider.ValueChanged += (_, _) =>
-            {
-                if (syncing) return;
-                Commit((int)Math.Round(slider.Value));
-            };
-            box.LostFocus += (_, _) =>
-            {
-                if (int.TryParse(box.Text, out var parsed)) Commit(parsed);
-                else Commit((int)Math.Round(slider.Value));
-            };
-            box.KeyDown += (_, e) =>
-            {
-                if (e.Key != Key.Enter) return;
-                e.Handled = true;
-                Keyboard.ClearFocus();
-            };
-
-            wrap.Children.Add(row);
-            root.Children.Add(wrap);
-        }
-
-        /// <summary>
-        /// Slider shows seconds (0..maxMs/1000), TextBox shows/accepts milliseconds (0..maxMs).
-        /// Useful for timing fields where coarse adjustment via slider is enough but precise ms input is needed.
-        /// </summary>
-        void AddSliderMsRow(Panel root, string title, string subtitle,
-            int minMs, int maxMs, int valueMs, Action<int> apply)
-        {
-            var wrap = new StackPanel { Margin = new Thickness(0, 0, 0, 10) };
-            wrap.Children.Add(new TextBlock
-            {
-                Tag = "Text",
-                Text = title,
-                Foreground = TextBrush,
-                FontSize = fontSize,
-                FontWeight = FontWeights.Bold
-            });
-            wrap.Children.Add(new TextBlock
-            {
-                Tag = "Muted",
-                Text = subtitle,
-                Foreground = MutedBrush,
-                FontSize = Math.Max(9, fontSize - 2),
-                Margin = new Thickness(0, 2, 0, 7)
-            });
-
-            int maxSec = maxMs / 1000;
-
-            var row = new Grid();
-            row.ColumnDefinitions.Add(new ColumnDefinition());
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            var slider = new Slider
-            {
-                Minimum = 0,
-                Maximum = maxSec,
-                Value = valueMs / 1000.0,
-                IsSnapToTickEnabled = true,
-                TickFrequency = 1,
-                Margin = new Thickness(0, 0, 10, 0),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            row.Children.Add(slider);
-
-            var box = new TextBox
-            {
-                Tag = "Input",
-                Text = valueMs.ToString(Invariant),
-                Width = 66,
-                Height = 28,
-                Background = SurfaceBrush,
-                Foreground = AccentBrush,
-                BorderBrush = LineBrush,
-                BorderThickness = new Thickness(1),
-                CaretBrush = Brushes.Transparent,
-                FontFamily = new FontFamily("Consolas"),
-                FontWeight = FontWeights.Bold,
-                TextAlignment = TextAlignment.Right,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                Padding = new Thickness(4, 0, 4, 0)
-            };
-            FixTextBoxFocus(box);
-            Grid.SetColumn(box, 1);
-            row.Children.Add(box);
-
-            var unit = new TextBlock
-            {
-                Tag = "Muted",
-                Text = "мс",
-                Foreground = MutedBrush,
-                Margin = new Thickness(6, 0, 0, 0),
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            Grid.SetColumn(unit, 2);
-            row.Children.Add(unit);
-
-            bool syncing = false;
-            void Commit(int nextMs)
-            {
-                nextMs = Clamp(nextMs, minMs, maxMs);
-                syncing = true;
-                slider.Value = nextMs / 1000.0;
-                box.Text = nextMs.ToString(Invariant);
-                syncing = false;
-                apply(nextMs);
-            }
-
-            // Slider moves in 1-second steps → convert to ms
-            slider.ValueChanged += (_, _) =>
-            {
-                if (syncing) return;
-                Commit((int)Math.Round(slider.Value) * 1000);
-            };
-            // TextBox accepts raw ms → precise input
-            box.LostFocus += (_, _) =>
-            {
-                if (int.TryParse(box.Text, out var parsed)) Commit(parsed);
-                else Commit((int)(slider.Value * 1000));
-            };
-            box.KeyDown += (_, e) =>
-            {
-                if (e.Key != Key.Enter) return;
-                e.Handled = true;
-                Keyboard.ClearFocus();
-            };
-
-            wrap.Children.Add(row);
-            root.Children.Add(wrap);
-        }
-
-        static int Clamp(int value, int min, int max) =>
-            Math.Min(max, Math.Max(min, value));
-
+        // Фікс кнопки СТОП: Дозволяємо клікати по контролах без безумовного блокування
         void Window_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.OriginalSource is DependencyObject source && !IsInside<TextBox>(source))
-                Keyboard.ClearFocus();
+            if (recording) return;
+
+            var hit = VisualTreeHelper.HitTest(this, e.GetPosition(this))?.VisualHit;
+            bool overControl = false;
+            while (hit != null && hit != this)
+            {
+                if (hit is Button || hit is ToggleButton || hit is TextBox || hit is Slider)
+                {
+                    overControl = true;
+                    break;
+                }
+                hit = VisualTreeHelper.GetParent(hit);
+            }
+
+            if (!overControl)
+            {
+                if (TxtCps != null && TxtCps.IsFocused)
+                {
+                    Focus();
+                    e.Handled = true;
+                }
+            }
         }
 
         void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.OriginalSource is DependencyObject source &&
-                (IsInside<TextBox>(source) || IsInside<ButtonBase>(source) || IsInside<Slider>(source)))
-                return;
-            try { DragMove(); } catch { }
+            if (!recording) DragMove();
         }
 
-        static bool IsInside<T>(DependencyObject? source) where T : DependencyObject
+        void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+        void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+        void SldCps_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            while (source != null)
-            {
-                if (source is T) return true;
-                DependencyObject? parent = null;
-                try { parent = VisualTreeHelper.GetParent(source); } catch { }
-                source = parent ??
-                    (source as FrameworkElement)?.Parent ??
-                    (source as FrameworkContentElement)?.Parent;
-            }
-            return false;
+            if (!initialized) return;
+            TxtCps.Text = ((int)SldCps.Value).ToString(Invariant);
+            RefreshRuntimeState();
+            UpdateMiniUi();
         }
 
-        void MouseButton_Click(object sender, RoutedEventArgs e)
+        void TxtCps_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (!holdMode)
+            if (!initialized || !TxtCps.IsFocused) return;
+            if (int.TryParse(TxtCps.Text, out var parsed) && parsed >= 1 && parsed <= 200)
             {
-                SetMouseButtons(sender == BtnLmb, sender == BtnRmb);
-                return;
+                SldCps.Value = parsed;
+                lock (stateLock) cps = parsed;
+                UpdateMiniUi();
             }
-
-            var left = BtnLmb.IsChecked == true;
-            var right = BtnRmb.IsChecked == true;
-            if (!left && !right)
-            {
-                left = sender == BtnLmb;
-                right = sender == BtnRmb;
-            }
-            SetMouseButtons(left, right);
         }
-
-        void RunMode_Click(object sender, RoutedEventArgs e) =>
-            SetRunMode(sender == BtnHoldMode);
 
         void TxtCps_LostFocus(object sender, RoutedEventArgs e)
         {
-            if (!int.TryParse(TxtCps.Text, out var value) || value < 1)
-                value = 100;
-            TxtCps.Text = value.ToString(Invariant);
-            lock (stateLock) cps = value;
+            if (!int.TryParse(TxtCps.Text, out var parsed) || parsed < 1)
+                parsed = 100;
+            parsed = Clamp(parsed, 1, 200);
+            TxtCps.Text = parsed.ToString(Invariant);
+            SldCps.Value = parsed;
+            lock (stateLock) cps = parsed;
             UpdateMiniUi();
-            if (initialized) SaveConfig();
+            SaveConfig();
         }
 
-        void TxtCps_KeyDown(object sender, KeyEventArgs e)
+        void BtnLmb_Click(object sender, RoutedEventArgs e) => SetMouseButtons(true, false);
+        void BtnRmb_Click(object sender, RoutedEventArgs e) => SetMouseButtons(false, true);
+
+        void RunMode_Click(object sender, RoutedEventArgs e)
         {
-            if (e.Key != Key.Enter) return;
-            e.Handled = true;
-            TxtCps_LostFocus(sender, new RoutedEventArgs());
-            Keyboard.ClearFocus();
+            var hold = sender == BtnHoldMode;
+            SetRunMode(hold);
         }
-
-        void BtnModules_Click(object sender, RoutedEventArgs e) =>
-            OpenModulesSettings();
-
-        void BtnAppearance_Click(object sender, RoutedEventArgs e) =>
-            OpenAppearanceSettings();
 
         void BtnRecord_Click(object sender, RoutedEventArgs e)
         {
@@ -1883,9 +1082,230 @@ namespace ClickerApp
 
         void BtnStart_Click(object sender, RoutedEventArgs e) => Start();
         void BtnStop_Click(object sender, RoutedEventArgs e) => Stop();
-        void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
-        void Close_Click(object sender, RoutedEventArgs e) => Close();
 
+        // ═══ ПОП-АП МЕНЮ МОДУЛІВ ═══
+        void BtnModules_Click(object sender, RoutedEventArgs e)
+        {
+            var pop = new Popup
+            {
+                PlacementTarget = BtnModules,
+                Placement = PlacementMode.Bottom,
+                HorizontalOffset = -250,
+                VerticalOffset = 8,
+                AllowsTransparency = true,
+                StaysOpen = false
+            };
+
+            var border = new Border
+            {
+                Background = BgBrush,
+                BorderBrush = LineBrush,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(12),
+                Width = 280,
+                Padding = new Thickness(16)
+            };
+
+            var mainStack = new StackPanel();
+
+            // --- Заголовок ---
+            mainStack.Children.Add(new TextBlock
+            {
+                Text = "МОДУЛІ МОДИФІКАЦІЇ",
+                Foreground = MutedBrush,
+                FontSize = 10,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(0, 0, 0, 14)
+            });
+
+            // 1. Модуль ANTI-DETECT
+            var rowAnti = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+            rowAnti.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            rowAnti.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+
+            var stackAntiText = new StackPanel();
+            stackAntiText.Children.Add(new TextBlock { Text = "ANTI-DETECT", Style = (Style)Resources["PanelTitle"] });
+            modAntiSummary = new TextBlock { Text = AntiSummaryText(), Foreground = MutedBrush, FontSize = 11, Margin = new Thickness(0, 2, 0, 0) };
+            stackAntiText.Children.Add(modAntiSummary);
+            rowAnti.Children.Add(stackAntiText);
+
+            modAntiToggle = new ToggleButton { Height = 26, Style = (Style)Resources["SegmentButton"] };
+            modAntiToggle.Click += (_, _) => SetAntiOn(modAntiToggle.IsChecked == true);
+            Grid.SetColumn(modAntiToggle, 1);
+            rowAnti.Children.Add(modAntiToggle);
+            mainStack.Children.Add(rowAnti);
+
+            mainStack.Children.Add(new Border { Height = 1, Background = LineBrush, Margin = new Thickness(0, 4, 0, 14) });
+
+            // 2. Модуль АВТО-ПЕРЕЗАХІД (Змінено назву на «Авто-перезахід»)
+            var rowRejoin = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+            rowRejoin.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            rowRejoin.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+
+            var stackRejoinText = new StackPanel();
+            stackRejoinText.Children.Add(new TextBlock { Text = "Авто-перезахід", Style = (Style)Resources["PanelTitle"] });
+            modRejoinSummary = new TextBlock { Text = RejoinSummaryText(), Foreground = MutedBrush, FontSize = 11, Margin = new Thickness(0, 2, 0, 0) };
+            stackRejoinText.Children.Add(modRejoinSummary);
+            rowRejoin.Children.Add(stackRejoinText);
+
+            modRejoinToggle = new ToggleButton { Height = 26, Style = (Style)Resources["SegmentButton"] };
+            modRejoinToggle.Click += (_, _) => SetAutoRejoinOn(modRejoinToggle.IsChecked == true);
+            Grid.SetColumn(modRejoinToggle, 1);
+            rowRejoin.Children.Add(modRejoinToggle);
+            mainStack.Children.Add(rowRejoin);
+
+            // --- Блок розширених налаштувань автоперезаходу ---
+            var rejoinSettings = new StackPanel { Margin = new Thickness(0, 4, 0, 0) };
+
+            rejoinSettings.Children.Add(new TextBlock { Text = "ЗАТРИМКА (СЕКУНДИ)", Style = (Style)Resources["SectionLabel"], Margin = new Thickness(0, 4, 0, 5) });
+            var delayGrid = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            delayGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            delayGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
+
+            // Повзунок керує секундами (цілі значення)
+            var sldDelay = new Slider { Minimum = 0, Maximum = 10, Value = Math.Round(rejoinDelayMs / 1000.0), IsSnapToTickEnabled = true, TickFrequency = 1, VerticalAlignment = Center, Margin = new Thickness(0, 0, 10, 0) };
+            var txtDelay = new TextBox { Text = (rejoinDelayMs / 1000.0).ToString("0.000", Invariant), Background = SurfaceBrush, Foreground = TextBrush, BorderThickness = new Thickness(1), BorderBrush = LineBrush, Height = 28, FontSize = 12, FontWeight = FontWeights.Bold, FontFamily = new FontFamily("Consolas"), VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(4, 0, 4, 0), TextAlignment = TextAlignment.Center };
+            FixTextBoxFocus(txtDelay);
+
+            sldDelay.ValueChanged += (_, _) =>
+            {
+                if (txtDelay.IsFocused) return;
+                int secs = (int)sldDelay.Value;
+                rejoinDelayMs = secs * 1000;
+                txtDelay.Text = sldDelay.Value.ToString("0.0", Invariant);
+                if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
+                SaveConfig();
+            };
+
+            // Фікс: Ручне введення підтримує дробові числа через крапку (.) або кому (,)
+            txtDelay.LostFocus += (_, _) =>
+            {
+                string raw = txtDelay.Text.Replace(',', '.').Trim();
+                if (double.TryParse(raw, NumberStyles.Any, Invariant, out var parsedSecs) && parsedSecs >= 0 && parsedSecs <= 60)
+                {
+                    rejoinDelayMs = (int)Math.Round(parsedSecs * 1000.0);
+                    int clampedSlider = Clamp((int)Math.Floor(parsedSecs), (int)sldDelay.Minimum, (int)sldDelay.Maximum);
+                    sldDelay.Value = clampedSlider;
+                }
+                txtDelay.Text = (rejoinDelayMs / 1000.0).ToString(Invariant);
+                if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
+                SaveConfig();
+            };
+
+            txtDelay.KeyDown += (_, ke) =>
+            {
+                if (ke.Key == Key.Enter)
+                {
+                    Forms.SendKeys.SendWait("{TAB}");
+                    ke.Handled = true;
+                }
+            };
+
+            delayGrid.Children.Add(sldDelay);
+            Grid.SetColumn(txtDelay, 1);
+            delayGrid.Children.Add(txtDelay);
+            rejoinSettings.Children.Add(delayGrid);
+
+            // Гаряча клавіша модуля
+            rejoinSettings.Children.Add(new TextBlock { Text = "БІНД ДЛЯ ПЕРЕЗАХОДУ", Style = (Style)Resources["SectionLabel"], Margin = new Thickness(0, 4, 0, 5) });
+            var hkGrid = new Grid();
+            hkGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            hkGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+
+            var borderHk = new Border { Background = SurfaceBrush, CornerRadius = new CornerRadius(6), BorderThickness = new Thickness(1), BorderBrush = LineBrush, Height = 30, Margin = new Thickness(0, 0, 8, 0) };
+            var txtHk = new TextBlock { Text = RejoinHotkeyText(), Foreground = AccentBrush, FontSize = 12, FontWeight = FontWeights.Bold, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            borderHk.Child = txtHk;
+            hkGrid.Children.Add(borderHk);
+
+            var btnHkRecord = new Button { Content = "ЗАПИС", Style = (Style)Resources["FlatButton"], Height = 30, Background = LineBrush, Foreground = TextBrush, FontSize = 11 };
+            
+            bool rejoinRecording = false;
+            KeyEventHandler? rejoinCaptureHandler = null;
+
+            rejoinCaptureHandler = (senderHk, khArgs) =>
+            {
+                khArgs.Handled = true;
+                var k = khArgs.Key == Key.System ? khArgs.SystemKey : khArgs.Key;
+                if (k == Key.Escape)
+                {
+                    rejoinRecording = false;
+                    pop.PreviewKeyDown -= rejoinCaptureHandler;
+                    btnHkRecord.Content = "ЗАПИС";
+                    btnHkRecord.Background = LineBrush;
+                    btnHkRecord.Foreground = TextBrush;
+                    txtHk.Text = RejoinHotkeyText();
+                    txtHk.Foreground = AccentBrush;
+                    RegisterRejoinHotkey();
+                    return;
+                }
+                if (IsModifierOnly(k)) return;
+                var vkey = (uint)KeyInterop.VirtualKeyFromKey(k);
+                if (vkey == 0) return;
+
+                uint mds = 0;
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) mds |= ModCtrl;
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)) mds |= ModShift;
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Alt)) mds |= ModAlt;
+
+                rejoinHotMod = mds;
+                rejoinHotVk = vkey;
+                rejoinHotDisplay = KeyToDisplay(k, vkey);
+
+                rejoinRecording = false;
+                pop.PreviewKeyDown -= rejoinCaptureHandler;
+                btnHkRecord.Content = "ЗАПИС";
+                btnHkRecord.Background = LineBrush;
+                btnHkRecord.Foreground = TextBrush;
+                txtHk.Text = RejoinHotkeyText();
+                txtHk.Foreground = AccentBrush;
+                if (modRejoinSummary != null) modRejoinSummary.Text = RejoinSummaryText();
+                RegisterRejoinHotkey();
+                SaveConfig();
+            };
+
+            btnHkRecord.Click += (_, _) =>
+            {
+                if (rejoinRecording)
+                {
+                    rejoinRecording = false;
+                    pop.PreviewKeyDown -= rejoinCaptureHandler;
+                    btnHkRecord.Content = "ЗАПИС";
+                    btnHkRecord.Background = LineBrush;
+                    btnHkRecord.Foreground = TextBrush;
+                    txtHk.Text = RejoinHotkeyText();
+                    txtHk.Foreground = AccentBrush;
+                    RegisterRejoinHotkey();
+                }
+                else
+                {
+                    rejoinRecording = true;
+                    UnregisterRejoinHotkey();
+                    btnHkRecord.Content = "СКАСУВАТИ";
+                    btnHkRecord.Background = DangerBrush;
+                    btnHkRecord.Foreground = BgBrush;
+                    txtHk.Text = "Клавіша...";
+                    txtHk.Foreground = DangerBrush;
+                    pop.PreviewKeyDown += rejoinCaptureHandler;
+                    pop.Focus();
+                }
+            };
+
+            Grid.SetColumn(btnHkRecord, 1);
+            hkGrid.Children.Add(btnHkRecord);
+            rejoinSettings.Children.Add(hkGrid);
+
+            mainStack.Children.Add(rejoinSettings);
+
+            border.Child = mainStack;
+            pop.Child = border;
+
+            RefreshModulesUi();
+            AttachHoverAnimations(border);
+
+            pop.IsOpen = true;
+        }
+
+        // Внутрішні класи конфігурації
         sealed class AppConfig
         {
             public int Cps { get; set; } = 100;
@@ -1893,11 +1313,11 @@ namespace ClickerApp
             public bool? ClickLeft { get; set; }
             public bool? ClickRight { get; set; }
             public string RunMode { get; set; } = "Stay";
+            public int FontSize { get; set; } = 14;
             public HotkeyConfig Hotkey { get; set; } = new();
             public AntiDetectConfig AntiDetect { get; set; } = new();
-            public ThemeConfig Theme { get; set; } = new();
-            public int FontSize { get; set; } = 14;
-            public ModulesConfig Modules { get; set; } = new();
+            public ModulesConfig? Modules { get; set; }
+            public ThemeConfig? Theme { get; set; }
         }
 
         sealed class ModulesConfig
@@ -1913,9 +1333,7 @@ namespace ClickerApp
             public string Display { get; set; } = "L";
             public string LeaveCommand { get; set; } = "/leave";
             public string RejoinCommand { get; set; } = "/rejoin";
-            /// <summary>Delay in milliseconds (preferred). Overrides DelaySeconds.</summary>
             public int DelayMs { get; set; } = 3000;
-            /// <summary>Legacy: delay in seconds. Used only when DelayMs == 0.</summary>
             public int DelaySeconds { get; set; } = 3;
         }
 
