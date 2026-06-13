@@ -953,8 +953,8 @@ namespace ClickerApp
             if (BtnModulesEnabled == null) return;
             var on = modulesEnabled;
             BtnModulesEnabled.IsChecked = on;
-            BtnModulesEnabled.Background = on ? AccentBrush : Brushes.Transparent;
-            BtnModulesEnabled.Foreground = on ? BgBrush : MutedBrush;
+            BtnModulesEnabled.Background = Brushes.Transparent;
+            BtnModulesEnabled.Foreground = on ? AccentBrush : DangerBrush;
         }
 
         void SetAntiOn(bool on)
