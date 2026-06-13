@@ -122,8 +122,16 @@ namespace ClickerApp
         string hotDisplay = "Z";
         int fontSize = 14;
 
+        // Modules: global on/off switch (default ON). When OFF, no module runs
+        // regardless of its individual state.
+        bool modulesEnabled = true;
+
+        // Modules: Anti-Detect
+        bool antiIgnoreStartStop;
+
         // Modules: Auto-Rejoin
         bool modulesAutoRejoinOn;
+        bool rejoinIgnoreStartStop;
         uint rejoinHotMod;
         uint rejoinHotVk = 0x4C; // L
         string rejoinHotDisplay = "L";
@@ -258,6 +266,7 @@ namespace ClickerApp
 
                 holdMode = string.Equals(cfg.RunMode, "Hold", StringComparison.OrdinalIgnoreCase);
                 antiOn = cfg.AntiDetect.On;
+                antiIgnoreStartStop = cfg.AntiDetect.IgnoreStartStop;
                 jitter = Clamp(cfg.AntiDetect.Jitter, 0, 50);
                 burstChance = Clamp(cfg.AntiDetect.BurstChance, 0, 30);
                 burstMs = Clamp(cfg.AntiDetect.BurstMs, 50, 500);
@@ -269,7 +278,9 @@ namespace ClickerApp
                 fontSize = Clamp(cfg.FontSize, 11, 18);
 
                 var rejoin = cfg.Modules?.AutoRejoin ?? new AutoRejoinConfig();
+                modulesEnabled = cfg.Modules?.Enabled ?? true;
                 modulesAutoRejoinOn = rejoin.On;
+                rejoinIgnoreStartStop = rejoin.IgnoreStartStop;
                 rejoinHotMod = rejoin.Modifiers;
                 rejoinHotVk = rejoin.VirtualKey == 0 ? 0x4C : rejoin.VirtualKey;
                 rejoinHotDisplay = string.IsNullOrWhiteSpace(rejoin.Display) ? KeyName(rejoinHotVk) : rejoin.Display;
@@ -299,6 +310,7 @@ namespace ClickerApp
                     AntiDetect = new AntiDetectConfig
                     {
                         On = antiOn,
+                        IgnoreStartStop = antiIgnoreStartStop,
                         Jitter = jitter,
                         BurstChance = burstChance,
                         BurstMs = burstMs,
@@ -308,9 +320,11 @@ namespace ClickerApp
                     FontSize = fontSize,
                     Modules = new ModulesConfig
                     {
+                        Enabled = modulesEnabled,
                         AutoRejoin = new AutoRejoinConfig
                         {
                             On = modulesAutoRejoinOn,
+                            IgnoreStartStop = rejoinIgnoreStartStop,
                             Modifiers = rejoinHotMod,
                             VirtualKey = rejoinHotVk,
                             Display = rejoinHotDisplay,
@@ -410,7 +424,7 @@ namespace ClickerApp
                     localCps = Math.Max(1, cps);
                     localLeft = clickLeft;
                     localRight = clickRight;
-                    localAnti = antiOn;
+                    localAnti = antiOn && modulesEnabled;
                     localHoldMode = holdMode;
                     localJitter = jitter;
                     localBurstChance = burstChance;
@@ -715,7 +729,7 @@ namespace ClickerApp
         {
             if (windowHandle == IntPtr.Zero) return;
             UnregisterHotKey(windowHandle, RejoinHotkeyId);
-            if (modulesAutoRejoinOn && rejoinHotVk != 0)
+            if (modulesEnabled && modulesAutoRejoinOn && rejoinHotVk != 0)
                 RegisterHotKey(windowHandle, RejoinHotkeyId, rejoinHotMod, rejoinHotVk);
         }
 
@@ -744,18 +758,23 @@ namespace ClickerApp
 
         void TriggerAutoRejoin()
         {
-            bool on;
+            bool modsEnabled, on, ignoreStartStop;
             string leave, rejoin;
             int delayMs;
             lock (stateLock)
             {
+                modsEnabled = modulesEnabled;
                 on = modulesAutoRejoinOn;
+                ignoreStartStop = rejoinIgnoreStartStop;
                 leave = rejoinLeaveCmd;
                 rejoin = rejoinJoinCmd;
                 delayMs = rejoinDelayMs;
             }
 
-            if (!on || !running) return;
+            // Global modules switch always wins. Otherwise the module must be on,
+            // and the clicker must be running unless this module ignores that rule.
+            if (!modsEnabled || !on) return;
+            if (!running && !ignoreStartStop) return;
 
             new Thread(() =>
             {
@@ -920,6 +939,25 @@ namespace ClickerApp
             if (save && initialized) SaveConfig();
         }
 
+        void SetModulesEnabled(bool on)
+        {
+            lock (stateLock) modulesEnabled = on;
+            RegisterRejoinHotkey();
+            UpdateModulesEnabledButton();
+            RefreshModulesUi();
+            if (initialized) SaveConfig();
+        }
+
+        void UpdateModulesEnabledButton()
+        {
+            if (BtnModulesEnabled == null) return;
+            var on = modulesEnabled;
+            BtnModulesEnabled.IsChecked = on;
+            BtnModulesEnabled.Content = on ? "ВКЛ" : "ВИКЛ";
+            BtnModulesEnabled.Background = on ? AccentBrush : LineBrush;
+            BtnModulesEnabled.Foreground = on ? BgBrush : MutedBrush;
+        }
+
         void SetAntiOn(bool on)
         {
             lock (stateLock) antiOn = on;
@@ -955,6 +993,8 @@ namespace ClickerApp
 
         void RefreshModulesUi()
         {
+            UpdateModulesEnabledButton();
+
             if (modAntiToggle != null)
             {
                 var on = antiOn;
@@ -986,10 +1026,13 @@ namespace ClickerApp
             if (ActiveModulesWrap == null) return;
             ActiveModulesWrap.Children.Clear();
 
-            if (antiOn)
-                ActiveModulesWrap.Children.Add(MakeModuleBadge("ANTI-DETECT"));
-            if (modulesAutoRejoinOn)
-                ActiveModulesWrap.Children.Add(MakeModuleBadge("AUTO-REJOIN"));
+            if (modulesEnabled)
+            {
+                if (antiOn)
+                    ActiveModulesWrap.Children.Add(MakeModuleBadge("ANTI-DETECT"));
+                if (modulesAutoRejoinOn)
+                    ActiveModulesWrap.Children.Add(MakeModuleBadge("AUTO-REJOIN"));
+            }
 
             ActiveModulesWrap.Visibility = ActiveModulesWrap.Children.Count > 0
                 ? Visibility.Visible
@@ -1190,6 +1233,21 @@ namespace ClickerApp
             var win = CreatePopup("МОДУЛІ", 430);
             var root = PopupRoot(win);
 
+            if (!modulesEnabled)
+            {
+                root.Children.Add(new TextBlock
+                {
+                    Tag = "Muted",
+                    Text = "Модулі вимкнено загальним перемикачем у головному вікні. " +
+                           "Поки він вимкнений, жоден модуль не працюватиме — " +
+                           "навіть якщо увімкнений нижче.",
+                    Foreground = MutedBrush,
+                    FontSize = Math.Max(9, fontSize - 2),
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 0, 0, 14)
+                });
+            }
+
             AddModuleRow(root, "Рандомізація кліків", AntiSummaryText(), antiOn,
                 SetAntiOn, OpenAntiDetectSettings,
                 (toggle, summary) => { modAntiToggle = toggle; modAntiSummary = summary; });
@@ -1293,6 +1351,62 @@ namespace ClickerApp
             bind(toggle, summaryBlock);
         }
 
+        /// <summary>Simple title + subtitle + single ON/OFF toggle row (no gear button).</summary>
+        void AddToggleRow(Panel root, string title, string subtitle, bool on, Action<bool> apply)
+        {
+            var row = new Grid { Margin = new Thickness(0, 0, 0, 10) };
+            row.ColumnDefinitions.Add(new ColumnDefinition());
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var stack = new StackPanel
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 12, 0)
+            };
+            stack.Children.Add(new TextBlock
+            {
+                Tag = "Text",
+                Text = title,
+                Foreground = TextBrush,
+                FontSize = fontSize,
+                FontWeight = FontWeights.Bold
+            });
+            stack.Children.Add(new TextBlock
+            {
+                Tag = "Muted",
+                Text = subtitle,
+                Foreground = MutedBrush,
+                FontSize = Math.Max(9, fontSize - 2),
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 3, 0, 0)
+            });
+            row.Children.Add(stack);
+
+            var toggle = new ToggleButton
+            {
+                Style = (Style)FindResource("SegmentButton"),
+                IsChecked = on,
+                Content = on ? "ВКЛ" : "ВИКЛ",
+                Width = 70,
+                Background = on ? AccentBrush : LineBrush,
+                Foreground = on ? BgBrush : MutedBrush,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(toggle, 1);
+            AttachHoverAnimation(toggle);
+            toggle.Click += (_, _) =>
+            {
+                var state = toggle.IsChecked == true;
+                toggle.Content = state ? "ВКЛ" : "ВИКЛ";
+                toggle.Background = state ? AccentBrush : LineBrush;
+                toggle.Foreground = state ? BgBrush : MutedBrush;
+                apply(state);
+            };
+            row.Children.Add(toggle);
+
+            root.Children.Add(row);
+        }
+
         void OpenAutoRejoinSettings()
         {
             // Window title renamed to AUTO-REJOIN
@@ -1367,6 +1481,15 @@ namespace ClickerApp
                 "Слайдер: секунди · Поле: секунди, мс через «.» або «,» (напр. 1.5)",
                 0, 60000, rejoinDelayMs,
                 value => { rejoinDelayMs = value; RefreshModulesUi(); SaveConfig(); });
+
+            AddDivider(root);
+
+            AddToggleRow(root,
+                "Працювати без СТАРТ клікера",
+                "Якщо увімкнено — модуль діє за гарячою клавішею незалежно від СТАРТ/СТОП клікера " +
+                "(загальний перемикач модулів все одно має бути увімкнений).",
+                rejoinIgnoreStartStop,
+                v => { rejoinIgnoreStartStop = v; SaveConfig(); });
 
             win.ShowDialog();
         }
@@ -1485,6 +1608,15 @@ namespace ClickerApp
             AddDivider(root);
             AddSliderRow(root, "Розкид утримання", "Випадковий hold-time перед відпусканням кнопки", 0, 40, holdMs, "мс",
                 value => { lock (stateLock) holdMs = value; this.holdMs = value; RefreshModulesUi(); SaveConfig(); });
+
+            AddDivider(root);
+
+            AddToggleRow(root,
+                "Працювати без СТАРТ клікера",
+                "Поки модуль діє лише під час кліків, тому ця опція наразі не змінює поведінку — " +
+                "залишена для єдиного вигляду з іншими модулями.",
+                antiIgnoreStartStop,
+                v => { antiIgnoreStartStop = v; SaveConfig(); });
 
             win.ShowDialog();
         }
@@ -1891,6 +2023,9 @@ namespace ClickerApp
         void BtnModules_Click(object sender, RoutedEventArgs e) =>
             OpenModulesSettings();
 
+        void BtnModulesEnabled_Click(object sender, RoutedEventArgs e) =>
+            SetModulesEnabled(BtnModulesEnabled.IsChecked == true);
+
         void BtnAppearance_Click(object sender, RoutedEventArgs e) =>
             OpenAppearanceSettings();
 
@@ -1921,12 +2056,17 @@ namespace ClickerApp
 
         sealed class ModulesConfig
         {
+            /// <summary>Global on/off switch for all modules. Default ON.</summary>
+            public bool Enabled { get; set; } = true;
             public AutoRejoinConfig AutoRejoin { get; set; } = new();
         }
 
         sealed class AutoRejoinConfig
         {
             public bool On { get; set; }
+            /// <summary>If true, this module ignores the clicker's START/STOP state
+            /// (still requires the global "Enabled" modules switch to be on).</summary>
+            public bool IgnoreStartStop { get; set; }
             public uint Modifiers { get; set; }
             public uint VirtualKey { get; set; } = 0x4C;
             public string Display { get; set; } = "L";
@@ -1948,6 +2088,9 @@ namespace ClickerApp
         sealed class AntiDetectConfig
         {
             public bool On { get; set; }
+            /// <summary>If true, this module ignores the clicker's START/STOP state
+            /// (still requires the global "Enabled" modules switch to be on).</summary>
+            public bool IgnoreStartStop { get; set; }
             public int Jitter { get; set; } = 10;
             public int BurstChance { get; set; } = 2;
             public int BurstMs { get; set; } = 70;
