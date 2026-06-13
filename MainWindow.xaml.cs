@@ -1158,6 +1158,11 @@ namespace ClickerApp
             root.Children.Add(header);
             border.Child = root;
             win.Content = border;
+            win.PreviewMouseDown += (_, e) =>
+            {
+                if (e.OriginalSource is DependencyObject source && !IsInside<TextBox>(source))
+                    Keyboard.ClearFocus();
+            };
             win.MouseLeftButtonDown += (_, e) =>
             {
                 if (e.OriginalSource is DependencyObject source &&
@@ -1818,15 +1823,19 @@ namespace ClickerApp
                 if (syncing) return;
                 Commit((int)Math.Round(slider.Value));
             };
-            box.LostFocus += (_, _) =>
+
+            void CommitFromBox()
             {
                 if (int.TryParse(box.Text, out var parsed)) Commit(parsed);
                 else Commit((int)Math.Round(slider.Value));
-            };
+            }
+
+            box.LostFocus += (_, _) => CommitFromBox();
             box.KeyDown += (_, e) =>
             {
                 if (e.Key != Key.Enter) return;
                 e.Handled = true;
+                CommitFromBox();
                 Keyboard.ClearFocus();
             };
 
@@ -1930,18 +1939,21 @@ namespace ClickerApp
                 Commit((int)Math.Round(slider.Value) * 1000);
             };
             // TextBox accepts seconds, optionally with '.' or ',' for the ms part
-            box.LostFocus += (_, _) =>
+            void CommitFromBox()
             {
                 var text = box.Text.Trim().Replace(',', '.');
                 if (double.TryParse(text, NumberStyles.Float, Invariant, out var seconds))
                     Commit((int)Math.Round(seconds * 1000));
                 else
                     Commit(valueMs);
-            };
+            }
+
+            box.LostFocus += (_, _) => CommitFromBox();
             box.KeyDown += (_, e) =>
             {
                 if (e.Key != Key.Enter) return;
                 e.Handled = true;
+                CommitFromBox();
                 Keyboard.ClearFocus();
             };
 
