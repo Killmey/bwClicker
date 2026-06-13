@@ -953,8 +953,7 @@ namespace ClickerApp
             if (BtnModulesEnabled == null) return;
             var on = modulesEnabled;
             BtnModulesEnabled.IsChecked = on;
-            BtnModulesEnabled.Content = on ? "ВКЛ" : "ВИКЛ";
-            BtnModulesEnabled.Background = on ? AccentBrush : LineBrush;
+            BtnModulesEnabled.Background = on ? AccentBrush : Brushes.Transparent;
             BtnModulesEnabled.Foreground = on ? BgBrush : MutedBrush;
         }
 

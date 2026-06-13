@@ -167,6 +167,50 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- МОДУЛІ pill: left segment opens module settings, right segment toggles all modules on/off -->
+        <Style x:Key="ModulesShellButton" TargetType="Button">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModulesShellToggle" TargetType="ToggleButton">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedBrush}"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Border Background="{DynamicResource BgBrush}" CornerRadius="18" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1">
@@ -233,6 +277,23 @@
                                    VerticalAlignment="Center" Margin="7,0,0,0"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,11,0,0">
+                        <Border x:Name="ModulesShell"
+                                Width="68" Height="28"
+                                Background="{DynamicResource LineBrush}"
+                                CornerRadius="14"
+                                ClipToBounds="True"
+                                Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="BtnModules" Content="▤"
+                                        Style="{StaticResource ModulesShellButton}"
+                                        Click="BtnModules_Click"
+                                        ToolTip="Модулі"/>
+                                <ToggleButton x:Name="BtnModulesEnabled" Content="⏻"
+                                              Style="{StaticResource ModulesShellToggle}"
+                                              Click="BtnModulesEnabled_Click"
+                                              ToolTip="Увімкнути/вимкнути всі модулі"/>
+                            </StackPanel>
+                        </Border>
                         <Border x:Name="RunModeShell"
                                 Width="112" Height="28"
                                 Background="{DynamicResource LineBrush}"
@@ -329,24 +390,7 @@
                         Click="BtnAppearance_Click"
                         Background="{DynamicResource SurfaceBrush}"
                         Foreground="{DynamicResource TextBrush}"
-                        Margin="0,0,0,16"/>
-
-                <TextBlock Text="МОДУЛІ" Style="{StaticResource SectionLabel}"/>
-                <Grid Margin="0,0,0,18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition Width="108"/>
-                    </Grid.ColumnDefinitions>
-                    <Button x:Name="BtnModules" Content="⚙  НАЛАШТУВАННЯ"
-                            Style="{StaticResource FlatButton}"
-                            Click="BtnModules_Click"
-                            Background="{DynamicResource SurfaceBrush}"
-                            Foreground="{DynamicResource TextBrush}"/>
-                    <ToggleButton x:Name="BtnModulesEnabled" Grid.Column="1" Content="ВКЛ"
-                                  Style="{StaticResource SegmentButton}"
-                                  Click="BtnModulesEnabled_Click"
-                                  Margin="8,0,0,0"/>
-                </Grid>
+                        Margin="0,0,0,18"/>
 
                 <Grid>
                     <Grid.ColumnDefinitions>
